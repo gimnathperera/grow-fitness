@@ -1,3 +1,4 @@
+import { RegisterParentDto } from './dto/register-parent.dto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -20,6 +21,25 @@ export class AuthService {
     }
     return null;
   }
+
+  async registerParent(registerDto: RegisterParentDto): Promise<any> {
+    const existingUser = await this.userModel.findOne({ email: registerDto.email }).exec();
+    if (existingUser) {
+      throw new Error('Email already in use');
+    }
+
+    const newUser = await this.createUser({
+      email: registerDto.email,
+      name: registerDto.name,
+      password: registerDto.password,
+      role: UserRole.PARENT,
+      phone: registerDto.phone,
+      location: registerDto.location
+  });
+
+  const { passwordHash, ...result } = newUser.toObject();
+  return result;
+}
 
   async login(user: any) {
     const payload = { email: user.email, sub: user._id, role: user.role };
@@ -45,7 +65,8 @@ export class AuthService {
     password: string;
     role: UserRole;
     phone?: string;
-  }): Promise<User> {
+    location?: string;
+  }): Promise<UserDocument> {
     const passwordHash = await this.hashPassword(userData.password);
     const user = new this.userModel({
       ...userData,
