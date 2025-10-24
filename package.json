@@ -1,0 +1,33 @@
+{
+  "name": "grow-fitness-admin",
+  "version": "1.0.0",
+  "description": "Grow Fitness Admin Panel MVP",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:admin\"",
+    "dev:api": "cd api && npm run start:dev",
+    "dev:admin": "cd admin && npm run dev",
+    "build": "npm run build:api && npm run build:admin",
+    "build:api": "cd api && npm run build",
+    "build:admin": "cd admin && npm run build",
+    "seed": "cd api && npm run seed",
+    "install:all": "npm install && cd api && npm install && cd ../admin && npm install",
+    "start": "concurrently \"npm run start:api\" \"npm run start:admin\"",
+    "start:api": "cd api && npm run start:prod",
+    "start:admin": "cd admin && npm run start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "fitness",
+    "admin",
+    "children",
+    "nestjs",
+    "nextjs",
+    "mongodb"
+  ],
+  "author": "Grow Fitness Team",
+  "license": "MIT"
+}
+
