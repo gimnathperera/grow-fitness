@@ -1,0 +1,11 @@
+# Run lint-staged to check and fix staged files
+pnpm lint-staged
+
+# Run strict linting check (no warnings allowed)
+pnpm lint:check
+
+# Run formatting check to ensure all files are properly formatted
+pnpm format:check
+
+# Run type checking
+pnpm type-check

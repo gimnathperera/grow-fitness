@@ -1,0 +1,59 @@
+name: Dependency Check
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '24.x'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Security audit
+        run: pnpm run security:audit
+
+      - name: Check for outdated dependencies
+        run: pnpm run security:outdated
+
+      - name: Create issue for outdated dependencies
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['dependencies']
+            });
+
+            const existingIssue = issues.find(issue => 
+              issue.title.includes('Dependency Update Required')
+            );
+
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Dependency Update Required',
+                body: 'Some dependencies are outdated and need to be updated. Please review the workflow run for details.',
+                labels: ['dependencies', 'maintenance']
+              });
+            }
