@@ -17,7 +17,6 @@ import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChildrenModule } from './modules/children/children.module';
 
-// Import all schemas
 import { User, UserSchema } from './schemas/user.schema';
 import {
   ParentProfile,
