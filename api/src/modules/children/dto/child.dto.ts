@@ -1,51 +1,97 @@
 import {
   IsString,
-  IsNumber,
   IsOptional,
   IsArray,
   IsDateString,
+  IsBoolean,
+  IsIn,
+  IsNotEmpty,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreateChildDto {
-  @IsString()
-  parentId: string;
+  @IsOptional()
+  parentId?: string;
 
   @IsString()
+  @IsNotEmpty()
   name: string;
 
+  @IsDateString()
+  @IsOptional()
+  birthDate?: Date;
+
   @IsNumber()
-  age: number;
+  @IsOptional()
+  @Min(0)
+  @Max(18)
+  age?: number;
+
+  @IsIn(['boy', 'girl'])
+  @IsNotEmpty()
+  gender: 'boy' | 'girl';
+
+  @IsString()
+  @IsNotEmpty()
+  location: string;
+
+  @IsArray()
+  @IsOptional()
+  goals?: string[] = [];
 
   @IsString()
   @IsOptional()
   medicalCondition?: string;
 
-  @IsString()
-  gender: string;
-
-  @IsArray()
+  @IsBoolean()
   @IsOptional()
-  goals?: string[];
+  isInSports?: boolean = false;
+
+  @IsIn(['personal', 'group'])
+  @IsOptional()
+  preferredTrainingStyle?: 'personal' | 'group' = 'group';
+
+  @IsIn(['personal', 'group'])
+  @IsOptional()
+  trainingPreference?: 'personal' | 'group';
 }
 
 export class UpdateChildDto {
   @IsString()
   @IsOptional()
+  parentId?: string;
+
+  @IsString()
+  @IsOptional()
   name?: string;
 
-  @IsNumber()
+  @IsDateString()
   @IsOptional()
-  age?: number;
+  birthDate?: Date;
+
+  @IsIn(['boy', 'girl'])
+  @IsOptional()
+  gender?: 'boy' | 'girl';
+
+  @IsString()
+  @IsOptional()
+  location?: string;
+
+  @IsArray()
+  @IsOptional()
+  goals?: string[];
 
   @IsString()
   @IsOptional()
   medicalCondition?: string;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
-  gender?: string;
+  isInSports?: boolean;
 
-  @IsArray()
+  @IsIn(['personal', 'group'])
   @IsOptional()
-  goals?: string[];
+  trainingPreference?: 'personal' | 'group';
 }

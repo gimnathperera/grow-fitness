@@ -32,7 +32,7 @@ const AppRouter: React.FC = () => {
           <Route
             path="client-dashboard"
             element={
-              <RequireAuth requiredRoles={['client', 'team', 'admin']}>
+              <RequireAuth requiredRoles={['client', 'parent', 'team', 'admin']}>
                 <ClientDashboard />
               </RequireAuth>
             }

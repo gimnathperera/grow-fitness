@@ -1,4 +1,6 @@
-import { IsEmail, IsString, MinLength, IsNotEmpty, IsOptional, Matches } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsNotEmpty, IsOptional, Matches, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateChildDto } from '../../children/dto/child.dto';
 
 export class RegisterParentDto {
   @IsString()
@@ -25,4 +27,10 @@ export class RegisterParentDto {
   @IsString()
   @IsNotEmpty()
   location: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateChildDto)
+  @IsOptional()
+  children?: CreateChildDto[];
 }

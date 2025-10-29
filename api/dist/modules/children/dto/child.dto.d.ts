@@ -1,15 +1,24 @@
 export declare class CreateChildDto {
-    parentId: string;
+    parentId?: string;
     name: string;
-    age: number;
-    medicalCondition?: string;
-    gender: string;
+    birthDate?: Date;
+    age?: number;
+    gender: 'boy' | 'girl';
+    location: string;
     goals?: string[];
+    medicalCondition?: string;
+    isInSports?: boolean;
+    preferredTrainingStyle?: 'personal' | 'group';
+    trainingPreference?: 'personal' | 'group';
 }
 export declare class UpdateChildDto {
+    parentId?: string;
     name?: string;
-    age?: number;
-    medicalCondition?: string;
-    gender?: string;
+    birthDate?: Date;
+    gender?: 'boy' | 'girl';
+    location?: string;
     goals?: string[];
+    medicalCondition?: string;
+    isInSports?: boolean;
+    trainingPreference?: 'personal' | 'group';
 }

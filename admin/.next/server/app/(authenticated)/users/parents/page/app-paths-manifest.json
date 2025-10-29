@@ -1,0 +1,3 @@
+{
+  "/(authenticated)/users/parents/page": "app/(authenticated)/users/parents/page.js"
+}

@@ -3,6 +3,9 @@ import { Document, Types } from 'mongoose';
 
 export type ChildDocument = Child & Document;
 
+type Gender = 'boy' | 'girl';
+type TrainingPreference = 'personal' | 'group';
+
 @Schema({ timestamps: true })
 export class Child {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
@@ -12,16 +15,25 @@ export class Child {
   name: string;
 
   @Prop({ required: true })
-  age: number;
+  birthDate: Date;
 
-  @Prop({ required: false })
+  @Prop({ required: true, enum: ['boy', 'girl'] })
+  gender: Gender;
+
+  @Prop({ required: true })
+  location: string;
+
+  @Prop({ type: [String], required: true })
+  goals: string[];
+
+  @Prop()
   medicalCondition?: string;
 
-  @Prop({ required: true, enum: ['male', 'female', 'other'] })
-  gender: string;
+  @Prop({ default: false })
+  isInSports: boolean;
 
-  @Prop({ type: [String], default: [] })
-  goals: string[];
+  @Prop({ required: true, enum: ['personal', 'group'] })
+  trainingPreference: TrainingPreference;
 }
 
 export const ChildSchema = SchemaFactory.createForClass(Child);

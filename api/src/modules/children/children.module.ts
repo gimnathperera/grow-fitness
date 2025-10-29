@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger, OnModuleInit } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChildrenController } from './children.controller';
 import { ChildrenService } from './children.service';
@@ -12,4 +12,10 @@ import { Child, ChildSchema } from '../../schemas/child.schema';
   providers: [ChildrenService],
   exports: [ChildrenService],
 })
-export class ChildrenModule {}
+export class ChildrenModule implements OnModuleInit {
+  private readonly logger = new Logger(ChildrenModule.name);
+
+  onModuleInit() {
+    this.logger.log('[ChildrenModule] Module initialized and ready');
+  }
+}

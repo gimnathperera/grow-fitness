@@ -52,11 +52,14 @@ const mongoose_2 = require("mongoose");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 const user_schema_1 = require("../../schemas/user.schema");
+const child_schema_1 = require("../../schemas/child.schema");
 let AuthService = class AuthService {
     userModel;
+    childModel;
     jwtService;
-    constructor(userModel, jwtService) {
+    constructor(userModel, childModel, jwtService) {
         this.userModel = userModel;
+        this.childModel = childModel;
         this.jwtService = jwtService;
     }
     async validateUser(email, password) {
@@ -68,20 +71,94 @@ let AuthService = class AuthService {
         return null;
     }
     async registerParent(registerDto) {
-        const existingUser = await this.userModel.findOne({ email: registerDto.email }).exec();
-        if (existingUser) {
-            throw new Error('Email already in use');
+        console.log('🔍 [AuthService] Registering parent with data:', JSON.stringify({
+            ...registerDto,
+            password: registerDto.password ? '[REDACTED]' : undefined,
+            children: registerDto.children?.length || 0
+        }, null, 2));
+        try {
+            console.log('🔍 [AuthService] Checking for existing user with email:', registerDto.email);
+            const existingUser = await this.userModel.findOne({ email: registerDto.email }).exec();
+            if (existingUser) {
+                console.warn('⚠️ [AuthService] Registration failed - Email already in use:', registerDto.email);
+                throw new Error('Email already in use');
+            }
+            console.log('🔧 [AuthService] Creating new user...');
+            const newUser = await this.createUser({
+                email: registerDto.email,
+                name: registerDto.name,
+                password: registerDto.password,
+                role: user_schema_1.UserRole.PARENT,
+                phone: registerDto.phone,
+                location: registerDto.location
+            });
+            console.log('✅ [AuthService] User created successfully:', {
+                id: newUser._id,
+                email: newUser.email,
+                role: newUser.role
+            });
+            const { passwordHash, ...userWithoutPassword } = newUser.toObject();
+            if (registerDto.children && registerDto.children.length > 0) {
+                console.log(`👶 [AuthService] Processing ${registerDto.children.length} children...`);
+                const childrenWithParent = registerDto.children.map((child, index) => {
+                    const childData = {
+                        ...child,
+                        parentId: newUser._id,
+                        goals: child.goals || [],
+                        isInSports: child.isInSports || false,
+                        preferredTrainingStyle: child.preferredTrainingStyle || 'group'
+                    };
+                    console.log(`  🧒 [Child ${index + 1}] Prepared child data:`, JSON.stringify(childData, null, 2));
+                    return childData;
+                });
+                try {
+                    console.log('📝 [AuthService] Saving children to database...');
+                    const savedChildren = await this.childModel.insertMany(childrenWithParent);
+                    console.log(`✅ [AuthService] Successfully saved ${savedChildren.length} children`);
+                }
+                catch (error) {
+                    console.error('❌ [AuthService] Error saving children:', error);
+                    throw new Error(`Failed to save children: ${error.message}`);
+                }
+            }
+            else {
+                console.log('ℹ️ [AuthService] No children provided for registration');
+            }
+            console.log('🔑 [AuthService] Generating JWT token...');
+            const payload = {
+                email: newUser.email,
+                sub: newUser._id,
+                role: newUser.role
+            };
+            const accessToken = this.jwtService.sign(payload, {
+                expiresIn: '15m'
+            });
+            const refreshToken = this.jwtService.sign({ sub: newUser._id }, { expiresIn: '7d' });
+            console.log('✅ [AuthService] Tokens generated successfully');
+            return {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                user: {
+                    id: newUser._id,
+                    email: newUser.email,
+                    name: newUser.name,
+                    role: newUser.role,
+                    phone: newUser.phone,
+                }
+            };
         }
-        const newUser = await this.createUser({
-            email: registerDto.email,
-            name: registerDto.name,
-            password: registerDto.password,
-            role: user_schema_1.UserRole.PARENT,
-            phone: registerDto.phone,
-            location: registerDto.location
-        });
-        const { passwordHash, ...result } = newUser.toObject();
-        return result;
+        catch (error) {
+            console.error('❌ [AuthService] Error in registerParent:', {
+                error: error.message,
+                stack: error.stack,
+                registerDto: registerDto ? {
+                    ...registerDto,
+                    password: registerDto.password ? '[REDACTED]' : undefined,
+                    children: registerDto.children?.length || 0
+                } : 'No registerDto'
+            });
+            throw error;
+        }
     }
     async login(user) {
         const payload = { email: user.email, sub: user._id, role: user.role };
@@ -112,7 +189,9 @@ exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(1, (0, mongoose_1.InjectModel)(child_schema_1.Child.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         jwt_1.JwtService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

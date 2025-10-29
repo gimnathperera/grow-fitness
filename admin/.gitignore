@@ -3,3 +3,6 @@
 
 # Environment variables
 .env*.local
+
+# Dependencies
+node_modules/

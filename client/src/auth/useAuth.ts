@@ -41,31 +41,43 @@ interface UseAuthResult {
 }
 
 const extractLoginPayload = (response: unknown): LoginResponse => {
+  // Handle direct response with access_token and user
   if (
     response &&
     typeof response === 'object' &&
-    'tokens' in response &&
+    'access_token' in response &&
     'user' in response
   ) {
-    return response as LoginResponse;
+    const { access_token, user } = response as { access_token: string; user: any };
+    return {
+      tokens: {
+        accessToken: access_token,
+        refreshToken: '', // Add this if your API returns it
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Default 24h expiry
+      },
+      user,
+    };
   }
 
+  // Handle nested response with data property
   if (
     response &&
     typeof response === 'object' &&
     'data' in response &&
     response.data &&
-    typeof response.data === 'object'
+    typeof response.data === 'object' &&
+    'access_token' in response.data &&
+    'user' in response.data
   ) {
-    const payload = (response as { data: unknown }).data;
-    if (
-      payload &&
-      typeof payload === 'object' &&
-      'tokens' in payload &&
-      'user' in payload
-    ) {
-      return payload as LoginResponse;
-    }
+    const { access_token, user } = (response as { data: any }).data;
+    return {
+      tokens: {
+        accessToken: access_token,
+        refreshToken: '', // Add this if your API returns it
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Default 24h expiry
+      },
+      user,
+    };
   }
 
   throw new Error('Unexpected login response shape.');
@@ -100,13 +112,28 @@ export const useAuth = (): UseAuthResult => {
 
   const handleLogin = useCallback(
     async (credentials: LoginDto) => {
-      const response = await login(credentials).unwrap();
-      const payload = extractLoginPayload(response);
+      try {
+        const response = await login(credentials).unwrap();
+        const payload = extractLoginPayload(response);
 
-      dispatch(setTokens(payload.tokens));
-      dispatch(setUser(payload.user));
+        // Save tokens and user to Redux store
+        dispatch(
+          setTokens({
+            accessToken: payload.tokens.accessToken,
+            refreshToken: payload.tokens.refreshToken,
+            expiresAt: payload.tokens.expiresAt,
+          })
+        );
+        dispatch(setUser(payload.user));
 
-      return payload;
+        // Manually trigger profile fetch to ensure we have the latest user data
+        dispatch(baseApi.util.invalidateTags(['User', 'Auth']));
+
+        return payload;
+      } catch (error) {
+        console.error('Login failed:', error);
+        throw error;
+      }
     },
     [dispatch, login],
   );

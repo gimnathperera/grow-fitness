@@ -27,34 +27,48 @@ export const kidsApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     getKids: builder.query<ApiSuccessResponse<any[]>, { parentId?: string } | void>({
       query: (params) => ({
-        url: '/kids',
+        url: '/children',
         method: 'GET',
         params: params ?? {},
       }),
       providesTags: ['Kid'],
+      extraOptions: { maxRetries: 0 },
     }),
+
     getKid: builder.query<ApiSuccessResponse<any>, string>({
       query: (id) => ({
-        url: `/kids/${id}`,
+        url: `/children/${id}`,
         method: 'GET',
       }),
       providesTags: (_, __, id) => [{ type: 'Kid', id }, 'Kid'],
+      extraOptions: { maxRetries: 0 },
     }),
+
     updateKid: builder.mutation<ApiSuccessResponse<any>, { id: string; payload: UpdateKidPayload }>({
       query: ({ id, payload }) => ({
-        url: `/kids/${id}`,
+        url: `/children/${id}`,
         method: 'PATCH',
         body: payload,
       }),
       invalidatesTags: (_, __, { id }) => [{ type: 'Kid', id }, 'Kid'],
+      extraOptions: { maxRetries: 0 },
     }),
+    
     createKids: builder.mutation<ApiSuccessResponse<unknown>, CreateKidsPayload>({
-      query: payload => ({
-        url: '/kids',
+      query: (payload) => ({
+        url: '/children',
         method: 'POST',
         body: payload,
+        // Ensure credentials are included
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          // The Authorization header will be added automatically by baseQueryWithReauth
+        },
       }),
+      // Invalidate the cache for the kids list
       invalidatesTags: ['Kid'],
+      extraOptions: { maxRetries: 0 },
     }),
   }),
   overrideExisting: false,

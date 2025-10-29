@@ -15,10 +15,13 @@ const mongoose_2 = require("mongoose");
 let Child = class Child {
     parentId;
     name;
-    age;
-    medicalCondition;
+    birthDate;
     gender;
+    location;
     goals;
+    medicalCondition;
+    isInSports;
+    trainingPreference;
 };
 exports.Child = Child;
 __decorate([
@@ -31,20 +34,32 @@ __decorate([
 ], Child.prototype, "name", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", Number)
-], Child.prototype, "age", void 0);
+    __metadata("design:type", Date)
+], Child.prototype, "birthDate", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: false }),
-    __metadata("design:type", String)
-], Child.prototype, "medicalCondition", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, enum: ['male', 'female', 'other'] }),
+    (0, mongoose_1.Prop)({ required: true, enum: ['boy', 'girl'] }),
     __metadata("design:type", String)
 ], Child.prototype, "gender", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Child.prototype, "location", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [String], required: true }),
     __metadata("design:type", Array)
 ], Child.prototype, "goals", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Child.prototype, "medicalCondition", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Child.prototype, "isInSports", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, enum: ['personal', 'group'] }),
+    __metadata("design:type", String)
+], Child.prototype, "trainingPreference", void 0);
 exports.Child = Child = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Child);

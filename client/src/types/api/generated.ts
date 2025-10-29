@@ -587,7 +587,7 @@ export interface components {
        * @example client
        * @enum {string}
        */
-      role: 'admin' | 'team' | 'coach' | 'client';
+      role: 'admin' | 'team' | 'coach' | 'client'| 'parent';
       /** @example active */
       status: string;
       /** @example 2024-01-01T12:00:00.000Z */

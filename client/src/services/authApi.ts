@@ -1,5 +1,6 @@
 import { baseApi } from '@/services/baseApi';
 import type { ApiResponse, ApiSuccessResponse, components } from '@/types/api';
+import { setTokens, setUser } from '@/auth/authSlice';
 
 export type LoginDto = components['schemas']['LoginDto'];
 export type RegisterDto = components['schemas']['RegisterDto'];
@@ -16,14 +17,64 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ['Auth', 'User'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data.ok && data.data?.tokens) {
+            dispatch(
+              setTokens({
+                accessToken: data.data.tokens.accessToken,
+                refreshToken: data.data.tokens.refreshToken,
+                expiresAt: data.data.tokens.expiresAt,
+              })
+            );
+            dispatch(setUser(data.data.user));
+          }
+        } catch (error) {
+          console.error('Login failed:', error);
+        }
+      },
     }),
     register: builder.mutation<ApiResponse<LoginResponse>, RegisterDto>({
       query: body => ({
-        url: '/auth/register',
+        url: '/auth/register/patient',
         method: 'POST',
         body,
       }),
       invalidatesTags: ['Auth', 'User'],
+    }),
+    registerParent: builder.mutation<ApiResponse<{
+      access_token: string;
+      refresh_token: string;
+      tokens: {
+        accessToken: string;
+        refreshToken: string;
+      };
+      user: any;
+    }>, any>({
+      query: (body) => ({
+        url: '/auth/register/parent',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Auth', 'User'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data.ok && data.data?.tokens) {
+            dispatch(
+              setTokens({
+                accessToken: data.data.tokens.accessToken,
+                refreshToken: data.data.tokens.refreshToken,
+                expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+              })
+            );
+            dispatch(setUser(data.data.user));
+          }
+        } catch (error) {
+          console.error('Registration failed:', error);
+        }
+      },
     }),
     getProfile: builder.query<ApiResponse<LoginResponse['user']>, void>({
       query: () => ({
@@ -69,12 +120,30 @@ export const authApi = baseApi.injectEndpoints({
   overrideExisting: false,
 });
 
-export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useGetProfileQuery,
+// Add child creation endpoint
+export const childrenApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    createChild: builder.mutation<ApiResponse<any>, any>({
+      query: (childData) => ({
+        url: '/children',
+        method: 'POST',
+        body: childData,
+      }),
+      invalidatesTags: ['Kid'],
+    }),
+  }),
+  overrideExisting: false,
+});
+
+export const { 
+  useLoginMutation, 
+  useRegisterMutation, 
+  useRegisterParentMutation,
+  useGetProfileQuery, 
   useLazyGetProfileQuery,
-  useRefreshTokensMutation,
-  useChangePasswordMutation,
+  useRefreshTokensMutation, 
+  useChangePasswordMutation, 
   useLogoutMutation,
 } = authApi;
+
+export const { useCreateChildMutation } = childrenApi;

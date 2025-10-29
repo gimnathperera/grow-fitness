@@ -8,11 +8,15 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { AdminGuard } from './admin.guard';
 import { User, UserSchema } from '../../schemas/user.schema';
+import { Child, ChildSchema } from '../../schemas/child.schema';
 
 @Module({
   imports: [
     PassportModule,
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Child.name, schema: ChildSchema },
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

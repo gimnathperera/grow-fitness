@@ -20,7 +20,7 @@ export type QuestionConfig<T extends string> = {
     | 'select'
     | 'multiselect';
   options?: {
-    value: string;
+    value: string | boolean;
     label: string;
     icon?: ReactNode;
   }[];

@@ -1,0 +1,10 @@
+{
+  "/(authenticated)/dashboard/page": "app/(authenticated)/dashboard/page.js",
+  "/(authenticated)/requests/page": "app/(authenticated)/requests/page.js",
+  "/(authenticated)/sessions/page": "app/(authenticated)/sessions/page.js",
+  "/(authenticated)/users/parents/page": "app/(authenticated)/users/parents/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js"
+}

@@ -10,7 +10,7 @@ import { clearSession, selectAuth, setTokens } from '@/auth/authSlice';
 import { normalizeApiError } from '@/services/errorNormalizer';
 
 const DEFAULT_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
+  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
 type RefreshResponse = {
   ok: boolean;

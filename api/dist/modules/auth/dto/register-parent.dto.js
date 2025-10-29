@@ -11,12 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegisterParentDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+const child_dto_1 = require("../../children/dto/child.dto");
 class RegisterParentDto {
     name;
     email;
     phone;
     password;
     location;
+    children;
 }
 exports.RegisterParentDto = RegisterParentDto;
 __decorate([
@@ -49,4 +52,11 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], RegisterParentDto.prototype, "location", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => child_dto_1.CreateChildDto),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], RegisterParentDto.prototype, "children", void 0);
 //# sourceMappingURL=register-parent.dto.js.map
