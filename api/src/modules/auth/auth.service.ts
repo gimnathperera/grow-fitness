@@ -45,7 +45,7 @@ export class AuthService {
     password: string;
     role: UserRole;
     phone?: string;
-  }): Promise<User> {
+  }): Promise<UserDocument> {
     const passwordHash = await this.hashPassword(userData.password);
     const user = new this.userModel({
       ...userData,
@@ -54,4 +54,3 @@ export class AuthService {
     return user.save();
   }
 }
-

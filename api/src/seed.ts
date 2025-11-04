@@ -1,55 +1,37 @@
+// src/seed.ts
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AuthService } from './modules/auth/auth.service';
 import { UserRole } from './schemas/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 
-// Import all schemas
-import { User, UserSchema } from './schemas/user.schema';
-import {
-  ParentProfile,
-  ParentProfileSchema,
-} from './schemas/parent-profile.schema';
-import { Child, ChildSchema } from './schemas/child.schema';
-import {
-  CoachProfile,
-  CoachProfileSchema,
-} from './schemas/coach-profile.schema';
-import { Location, LocationSchema } from './schemas/location.schema';
-import {
-  Session,
-  SessionSchema,
-  SessionType,
-  SessionStatus,
-} from './schemas/session.schema';
-import {
-  Request,
-  RequestSchema,
-  RequestType,
-  RequestStatus,
-} from './schemas/request.schema';
+// Schemas (types only; tokens use .name)
+import { User } from './schemas/user.schema';
+import { ParentProfile } from './schemas/parent-profile.schema';
+import { Child } from './schemas/child.schema';
+import { CoachProfile } from './schemas/coach-profile.schema';
+import { Location } from './schemas/location.schema';
+import { Session, SessionType, SessionStatus } from './schemas/session.schema';
+import { Request, RequestType, RequestStatus } from './schemas/request.schema';
 import {
   Invoice,
-  InvoiceSchema,
   InvoiceStatus,
   PaymentMethod,
 } from './schemas/invoice.schema';
-import {
-  MilestoneRule,
-  MilestoneRuleSchema,
-} from './schemas/milestone-rule.schema';
-import { Resource, ResourceSchema } from './schemas/resource.schema';
-import {
-  Notification,
-  NotificationSchema,
-} from './schemas/notification.schema';
+import { MilestoneRule } from './schemas/milestone-rule.schema';
+import { Resource } from './schemas/resource.schema';
+import { Notification } from './schemas/notification.schema';
+
+// helper: compute age from birthdate (years)
+const calcAge = (d: Date) =>
+  Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
-  // Get models
+  // Get models via tokens that match how you registered them in your modules
   const userModel = app.get<Model<User>>(getModelToken(User.name));
   const parentProfileModel = app.get<Model<ParentProfile>>(
     getModelToken(ParentProfile.name),
@@ -75,7 +57,7 @@ async function seed() {
   try {
     console.log('🌱 Starting seed process...');
 
-    // Clear existing data
+    // DEV-ONLY: clear existing data for a clean slate
     await userModel.deleteMany({});
     await parentProfileModel.deleteMany({});
     await childModel.deleteMany({});
@@ -88,17 +70,17 @@ async function seed() {
     await resourceModel.deleteMany({});
     await notificationModel.deleteMany({});
 
-    // 1. Create Admin user
+    // 1) Admin
     const admin = await authService.createUser({
       email: 'admin@growfitness.lk',
       name: 'Admin User',
-      password: 'admin123',
+      password: 'admin123', // AuthService should hash this
       role: UserRole.ADMIN,
       phone: '+94771234567',
     });
     console.log('✅ Created admin user');
 
-    // 2. Create Coach users
+    // 2) Coaches + profiles
     const coach1 = await authService.createUser({
       email: 'coach1@growfitness.lk',
       name: 'John Coach',
@@ -115,9 +97,8 @@ async function seed() {
       phone: '+94771234569',
     });
 
-    // Create coach profiles
-    const coach1Profile = new coachProfileModel({
-      userId: (coach1 as any)._id,
+    await new coachProfileModel({
+      userId: coach1._id,
       skills: ['Fitness Training', 'Child Development', 'Nutrition'],
       availability: [
         { day: 'Monday', start: '09:00', end: '17:00' },
@@ -125,11 +106,10 @@ async function seed() {
         { day: 'Wednesday', start: '09:00', end: '17:00' },
       ],
       earningsDerived: 0,
-    });
-    await coach1Profile.save();
+    }).save();
 
-    const coach2Profile = new coachProfileModel({
-      userId: (coach2 as any)._id,
+    await new coachProfileModel({
+      userId: coach2._id,
       skills: ['Swimming', 'Gymnastics', 'Team Sports'],
       availability: [
         { day: 'Thursday', start: '10:00', end: '18:00' },
@@ -137,11 +117,11 @@ async function seed() {
         { day: 'Saturday', start: '08:00', end: '16:00' },
       ],
       earningsDerived: 0,
-    });
-    await coach2Profile.save();
+    }).save();
+
     console.log('✅ Created coach users and profiles');
 
-    // 3. Create Parent users
+    // 3) Parents + profiles
     const parent1 = await authService.createUser({
       email: 'parent1@growfitness.lk',
       name: 'Alice Parent',
@@ -158,205 +138,220 @@ async function seed() {
       phone: '+94771234571',
     });
 
-    // Create parent profiles
-    const parent1Profile = new parentProfileModel({
-      userId: (parent1 as any)._id,
+    await new parentProfileModel({
+      userId: parent1._id,
       children: [],
-    });
-    await parent1Profile.save();
+    }).save();
 
-    const parent2Profile = new parentProfileModel({
-      userId: (parent2 as any)._id,
+    await new parentProfileModel({
+      userId: parent2._id,
       children: [],
-    });
-    await parent2Profile.save();
+    }).save();
+
     console.log('✅ Created parent users and profiles');
 
-    // 4. Create Children
-    const child1 = new childModel({
-      parentId: (parent1 as any)._id,
+    // 4) Children (add required `gender` and `age`)
+    const child1Birth = new Date('2018-05-15');
+    const child1 = await new childModel({
+      parentId: parent1._id,
       name: 'Emma Child',
-      birthDate: new Date('2018-05-15'),
+      birthDate: child1Birth,
+      age: calcAge(child1Birth),
+      gender: 'female', // if you have a Gender enum, use it here
       goals: ['Improve coordination', 'Build confidence', 'Learn swimming'],
-    });
-    await child1.save();
+    }).save();
 
-    const child2 = new childModel({
-      parentId: (parent1 as any)._id,
+    const child2Birth = new Date('2020-03-22');
+    const child2 = await new childModel({
+      parentId: parent1._id,
       name: 'Liam Child',
-      birthDate: new Date('2020-03-22'),
+      birthDate: child2Birth,
+      age: calcAge(child2Birth),
+      gender: 'male',
       goals: ['Basic motor skills', 'Social interaction'],
-    });
-    await child2.save();
+    }).save();
 
-    const child3 = new childModel({
-      parentId: (parent2 as any)._id,
+    const child3Birth = new Date('2019-08-10');
+    const child3 = await new childModel({
+      parentId: parent2._id,
       name: 'Sophia Child',
-      birthDate: new Date('2019-08-10'),
+      birthDate: child3Birth,
+      age: calcAge(child3Birth),
+      gender: 'female',
       goals: ['Fitness foundation', 'Team sports'],
-    });
-    await child3.save();
+    }).save();
 
-    const child4 = new childModel({
-      parentId: (parent2 as any)._id,
+    const child4Birth = new Date('2021-12-05');
+    const child4 = await new childModel({
+      parentId: parent2._id,
       name: 'Noah Child',
-      birthDate: new Date('2021-12-05'),
+      birthDate: child4Birth,
+      age: calcAge(child4Birth),
+      gender: 'male',
       goals: ['Early development', 'Play skills'],
-    });
-    await child4.save();
+    }).save();
 
-    // Update parent profiles with children
+    // link children to parent profiles
     await parentProfileModel.updateOne(
-      { userId: (parent1 as any)._id },
-      { children: [(child1 as any)._id, (child2 as any)._id] },
+      { userId: parent1._id },
+      {
+        children: [child1._id, child2._id],
+      },
     );
     await parentProfileModel.updateOne(
-      { userId: (parent2 as any)._id },
-      { children: [(child3 as any)._id, (child4 as any)._id] },
+      { userId: parent2._id },
+      {
+        children: [child3._id, child4._id],
+      },
     );
+
     console.log('✅ Created children and linked to parents');
 
-    // 5. Create Locations
-    const location1 = new locationModel({ label: 'Main Gym - Colombo' });
-    await location1.save();
-
-    const location2 = new locationModel({ label: 'Swimming Pool - Kandy' });
-    await location2.save();
-
-    const location3 = new locationModel({
+    // 5) Locations
+    const location1 = await new locationModel({
+      label: 'Main Gym - Colombo',
+    }).save();
+    const location2 = await new locationModel({
+      label: 'Swimming Pool - Kandy',
+    }).save();
+    const location3 = await new locationModel({
       label: 'Outdoor Playground - Galle',
-    });
-    await location3.save();
+    }).save();
+
     console.log('✅ Created locations');
 
-    // 6. Create Sessions
+    // 6) Sessions
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const session1 = new sessionModel({
+    await new sessionModel({
       type: SessionType.INDIVIDUAL,
-      coachId: (coach1 as any)._id,
-      childIds: [(child1 as any)._id],
-      locationId: (location1 as any)._id,
-      startAt: new Date(tomorrow.getTime() + 10 * 60 * 60 * 1000), // 10 AM tomorrow
-      endAt: new Date(tomorrow.getTime() + 11 * 60 * 60 * 1000), // 11 AM tomorrow
+      coachId: coach1._id,
+      childIds: [child1._id],
+      locationId: location1._id,
+      startAt: new Date(tomorrow.getTime() + 10 * 60 * 60 * 1000),
+      endAt: new Date(tomorrow.getTime() + 11 * 60 * 60 * 1000),
       status: SessionStatus.BOOKED,
-    });
-    await session1.save();
+    }).save();
 
-    const session2 = new sessionModel({
+    await new sessionModel({
       type: SessionType.GROUP,
-      coachId: (coach1 as any)._id,
-      childIds: [(child2 as any)._id, (child3 as any)._id],
-      locationId: (location1 as any)._id,
-      startAt: new Date(tomorrow.getTime() + 14 * 60 * 60 * 1000), // 2 PM tomorrow
-      endAt: new Date(tomorrow.getTime() + 15 * 60 * 60 * 1000), // 3 PM tomorrow
+      coachId: coach1._id,
+      childIds: [child2._id, child3._id],
+      locationId: location1._id,
+      startAt: new Date(tomorrow.getTime() + 14 * 60 * 60 * 1000),
+      endAt: new Date(tomorrow.getTime() + 15 * 60 * 60 * 1000),
       status: SessionStatus.BOOKED,
-    });
-    await session2.save();
+    }).save();
 
-    const session3 = new sessionModel({
+    await new sessionModel({
       type: SessionType.INDIVIDUAL,
-      coachId: (coach2 as any)._id,
-      childIds: [(child1 as any)._id],
-      locationId: (location2 as any)._id,
-      startAt: new Date(nextWeek.getTime() + 9 * 60 * 60 * 1000), // 9 AM next week
-      endAt: new Date(nextWeek.getTime() + 10 * 60 * 60 * 1000), // 10 AM next week
+      coachId: coach2._id,
+      childIds: [child1._id],
+      locationId: location2._id,
+      startAt: new Date(nextWeek.getTime() + 9 * 60 * 60 * 1000),
+      endAt: new Date(nextWeek.getTime() + 10 * 60 * 60 * 1000),
       status: SessionStatus.BOOKED,
-    });
-    await session3.save();
+    }).save();
 
-    const session4 = new sessionModel({
+    await new sessionModel({
       type: SessionType.GROUP,
-      coachId: (coach2 as any)._id,
-      childIds: [(child3 as any)._id, (child4 as any)._id],
-      locationId: (location3 as any)._id,
-      startAt: new Date(nextWeek.getTime() + 15 * 60 * 60 * 1000), // 3 PM next week
-      endAt: new Date(nextWeek.getTime() + 16 * 60 * 60 * 1000), // 4 PM next week
+      coachId: coach2._id,
+      childIds: [child3._id, child4._id],
+      locationId: location3._id,
+      startAt: new Date(nextWeek.getTime() + 15 * 60 * 60 * 1000),
+      endAt: new Date(nextWeek.getTime() + 16 * 60 * 60 * 1000),
       status: SessionStatus.BOOKED,
-    });
-    await session4.save();
+    }).save();
 
-    const session5 = new sessionModel({
+    await new sessionModel({
       type: SessionType.INDIVIDUAL,
-      coachId: (coach1 as any)._id,
-      childIds: [(child2 as any)._id],
-      locationId: (location1 as any)._id,
-      startAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      endAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000), // 2 days ago + 1 hour
+      coachId: coach1._id,
+      childIds: [child2._id],
+      locationId: location1._id,
+      startAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+      endAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000),
       status: SessionStatus.COMPLETED,
-    });
-    await session5.save();
+    }).save();
 
-    const session6 = new sessionModel({
+    await new sessionModel({
       type: SessionType.GROUP,
-      coachId: (coach2 as any)._id,
-      childIds: [(child1 as any)._id, (child3 as any)._id],
-      locationId: (location2 as any)._id,
-      startAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-      endAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000), // 1 day ago + 1 hour
+      coachId: coach2._id,
+      childIds: [child1._id, child3._id],
+      locationId: location2._id,
+      startAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+      endAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000),
       status: SessionStatus.COMPLETED,
-    });
-    await session6.save();
+    }).save();
+
     console.log('✅ Created sessions');
 
-    // 7. Create Requests
-    const request1 = new requestModel({
+    // 7) Requests
+    const sessionForReq1 = await sessionModel.findOne({
+      status: SessionStatus.BOOKED,
+    });
+    const sessionForReq2 = await sessionModel.findOne({
+      status: SessionStatus.BOOKED,
+      _id: { $ne: sessionForReq1?._id },
+    });
+    const sessionForReq3 = await sessionModel.findOne({
+      status: SessionStatus.BOOKED,
+      _id: { $nin: [sessionForReq1?._id, sessionForReq2?._id] },
+    });
+
+    const request1 = await new requestModel({
       type: RequestType.RESCHEDULE,
-      sessionId: (session1 as any)._id,
-      requesterId: (parent1 as any)._id,
+      sessionId: sessionForReq1?._id,
+      requesterId: parent1._id,
       reason: 'Family emergency, need to reschedule',
       isLate: false,
       status: RequestStatus.PENDING,
-    });
-    await request1.save();
+    }).save();
 
-    const request2 = new requestModel({
+    await new requestModel({
       type: RequestType.CANCEL,
-      sessionId: (session2 as any)._id,
-      requesterId: (parent1 as any)._id,
+      sessionId: sessionForReq2?._id,
+      requesterId: parent1._id,
       reason: 'Child is sick',
       isLate: false,
       status: RequestStatus.APPROVED,
       adminNote: 'Approved due to illness',
       decidedAt: new Date(),
-    });
-    await request2.save();
+    }).save();
 
-    const request3 = new requestModel({
+    await new requestModel({
       type: RequestType.RESCHEDULE,
-      sessionId: (session3 as any)._id,
-      requesterId: (parent2 as any)._id,
+      sessionId: sessionForReq3?._id,
+      requesterId: parent2._id,
       reason: 'Work conflict',
-      isLate: true, // Less than 12 hours before session
+      isLate: true,
       status: RequestStatus.REJECTED,
       adminNote: 'Rejected - too late to reschedule',
       decidedAt: new Date(),
-    });
-    await request3.save();
+    }).save();
+
     console.log('✅ Created requests');
 
-    // 8. Create Invoices
-    const invoice1 = new invoiceModel({
-      parentId: (parent1 as any)._id,
+    // 8) Invoices
+    await new invoiceModel({
+      parentId: parent1._id,
       amountLKR: 5000,
       status: InvoiceStatus.PAID,
-      paidDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+      paidDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
       paidMethod: PaymentMethod.BANK,
-    });
-    await invoice1.save();
+    }).save();
 
-    const invoice2 = new invoiceModel({
-      parentId: (parent2 as any)._id,
+    await new invoiceModel({
+      parentId: parent2._id,
       amountLKR: 7500,
       status: InvoiceStatus.UNPAID,
-    });
-    await invoice2.save();
+    }).save();
+
     console.log('✅ Created invoices');
 
-    // 9. Create Milestone Rule
-    const milestoneRule = new milestoneRuleModel({
+    // 9) Milestone rule
+    await new milestoneRuleModel({
       name: '10 Sessions Completed',
       conditionJSON: {
         type: 'session_count',
@@ -365,48 +360,44 @@ async function seed() {
       },
       rewardType: 'certificate',
       isActive: true,
-    });
-    await milestoneRule.save();
+    }).save();
+
     console.log('✅ Created milestone rule');
 
-    // 10. Create Resource
-    const resource = new resourceModel({
+    // 10) Resource
+    await new resourceModel({
       title: 'Healthy Snacks for Active Kids',
       category: 'Nutrition',
       tags: ['nutrition', 'snacks', 'kids', 'health'],
       contentRef: 'https://example.com/healthy-snacks-guide',
-    });
-    await resource.save();
+    }).save();
+
     console.log('✅ Created resource');
 
-    // 11. Create Notifications
-    const notification1 = new notificationModel({
-      userId: (admin as any)._id,
+    // 11) Notifications
+    await new notificationModel({
+      userId: admin._id,
       type: 'new_request',
       payload: {
-        requestId: (request1 as any)._id,
+        requestId: request1._id,
         message: 'New reschedule request from Alice Parent',
       },
-    });
-    await notification1.save();
+    }).save();
 
-    const notification2 = new notificationModel({
-      userId: (admin as any)._id,
+    await new notificationModel({
+      userId: admin._id,
       type: 'session_reminder',
       payload: {
-        sessionId: (session1 as any)._id,
         message: 'Session reminder: Emma Child has a session tomorrow at 10 AM',
       },
-    });
-    await notification2.save();
-    console.log('✅ Created notifications');
+    }).save();
 
     console.log('🎉 Seed completed successfully!');
     console.log('\n📋 Test Data Summary:');
     console.log('- 1 Admin user (admin@growfitness.lk / admin123)');
     console.log('- 2 Coach users with profiles');
     console.log('- 2 Parent users with profiles');
-    console.log('- 4 Children linked to parents');
+    console.log('- 4 Children (with gender + age) linked to parents');
     console.log('- 3 Locations');
     console.log('- 6 Sessions (mix of individual and group)');
     console.log('- 3 Requests (1 pending, 1 approved, 1 rejected)');
@@ -422,7 +413,7 @@ async function seed() {
   }
 }
 
-// Run seed if this file is executed directly
+// Run seed if executed directly
 if (require.main === module) {
   seed().catch(console.error);
 }
