@@ -10,6 +10,8 @@ async function bootstrap() {
       'http://localhost:3000',
       'https://localhost:3000',
       'https://k05jtur8ml.execute-api.us-east-1.amazonaws.com',
+      'https://grow-fitness-admin.vercel.app',
+      'https://grow-fitness-client.vercel.app',
     ],
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
