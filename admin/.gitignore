@@ -1,4 +1,5 @@
 # Local environment variables
+.env
 .env.local
 
 # Environment variables
@@ -6,3 +7,4 @@
 
 # Dependencies
 node_modules/
+.next
