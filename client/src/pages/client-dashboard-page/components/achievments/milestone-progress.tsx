@@ -60,7 +60,6 @@ export function MilestoneProgress() {
   };
 
   const toggleTask = (milestoneId: string, taskId: string, category: Category) => {
-    // Only allow updates for Wellness and Nutrition
     if (category === 'Fitness') return;
 
     setMilestones((prev) =>
