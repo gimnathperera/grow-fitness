@@ -19,10 +19,16 @@ import { Child, ChildSchema } from '../../schemas/child.schema';
     ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '24h' },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        // ✅ Debug log to confirm JWT secret is loaded
+        const jwtSecret = configService.get<string>('JWT_SECRET');
+        console.log('Loaded JWT_SECRET:', jwtSecret || '❌ NOT FOUND');
+
+        return {
+          secret: jwtSecret,
+          signOptions: { expiresIn: '24h' },
+        };
+      },
       inject: [ConfigService],
     }),
   ],
