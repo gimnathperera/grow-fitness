@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type JSXElementConstructor, type Key, type ReactElement, type ReactNode, type ReactPortal } from "react";
 import {
   Select,
   SelectContent,
@@ -16,6 +16,9 @@ import { useLazyGetKidQuery, useGetKidsQuery } from "@/services/kidsApi";
 export function DashboardHeader() {
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch();
+
+  console.log("USER:", user);
+  console.log("Detected User Role:", user?.role);
 
   const roleConfig = {
     parent: {
@@ -67,53 +70,90 @@ export function DashboardHeader() {
 
   const config = user ? roleConfig[user.role] : null;
 
-  const [selectedKid, setSelectedKid] = useState<string>("");
+  const [selectedKid, setSelectedKid] = useState("");
+
   const [triggerGetKid, { data: kidResp, isFetching: isKidLoading }] =
     useLazyGetKidQuery();
 
-  const { data: kidsListResp } = useGetKidsQuery(
-    user?.role === "client" ? {} : undefined,
-    { skip: user?.role !== "client" }
-  );
+  // --------------------------
+  //    FETCH KIDS (FIXED)
+  // --------------------------
+  let kidsQueryArg: any = undefined;
 
-  const userKids =
-    (user as any)?.kids as Array<{ id: string; name: string }> | undefined;
+  if (user?.role === "client") kidsQueryArg = {};
+  else if (user?.role === "parent") kidsQueryArg = { parentId: user?.id };
+
+  console.log("useGetKidsQuery Params:", kidsQueryArg);
+
+  const {
+    data: kidsListResp,
+    isFetching: kidsLoading,
+    error: kidsError,
+  } = useGetKidsQuery(kidsQueryArg, {
+    skip: !user?.role || (user.role !== "client" && user.role !== "parent"),
+  });
+
+  console.log("kidsListResp (API):", kidsListResp);
+  console.log("kidsLoading:", kidsLoading);
+  console.log("kidsError:", kidsError);
+
+  // userKids from auth store if available
+  const userKids = (user as any)?.kids;
+  console.log("userKids from user object:", userKids);
+
+  // FIXED: API returns array directly
   const apiKids =
-    (kidsListResp?.data as any[])?.map((k: any) => ({
+    (kidsListResp as unknown as any[])?.map((k: any) => ({
       id: String(k._id || k.id),
       name: k.name,
     })) || [];
-  const kidsForUi: Array<{ id: string; name: string }> = userKids?.length
-    ? userKids.map((k: { id: string; name: string }) => ({
-        id: String(k.id),
-        name: k.name,
-      }))
-    : apiKids;
 
+  console.log("apiKids from API:", apiKids);
+
+  const kidsForUi =
+    userKids && userKids.length > 0
+      ? userKids.map((k: any) => ({
+          id: String(k.id),
+          name: k.name,
+        }))
+      : apiKids;
+
+  console.log("Final kidsForUi used in UI:", kidsForUi);
+
+  // ------------------------------------------------
+  //       AUTO SELECT FIRST KID (FIXED)
+  // ------------------------------------------------
   useEffect(() => {
-    if (user?.role === "client") {
-      const userKids = (user as any)?.kids as
-        | Array<{ id: string; name: string }>
-        | undefined;
-      if (userKids?.length) {
-        const firstId = String(userKids[0].id);
-        setSelectedKid(firstId);
-        dispatch(setSelectedKidId(firstId));
-        return;
-      }
-      const apiKids = (kidsListResp?.data as any[]) ?? [];
-      if (apiKids.length) {
-        const firstId = String(apiKids[0]._id || apiKids[0].id);
-        setSelectedKid(firstId);
-        dispatch(setSelectedKidId(firstId));
-      }
+    console.log("Running AUTO SELECT KID useEffect...");
+    console.log("user.role:", user?.role);
+
+    const sourceKids =
+      kidsForUi && kidsForUi.length > 0 ? kidsForUi : apiKids;
+
+    console.log("Available kids:", sourceKids);
+
+    if (
+      (user?.role === "client" || user?.role === "parent") &&
+      sourceKids.length > 0
+    ) {
+      const firstKidId = String(sourceKids[0].id);
+      console.log("Setting FIRST selectedKid to:", firstKidId);
+
+      setSelectedKid(firstKidId);
+      dispatch(setSelectedKidId(firstKidId));
     }
   }, [user, kidsListResp, dispatch]);
 
+  // ------------------------------------------------
+  //      FETCH SELECTED KID DETAILS
+  // ------------------------------------------------
   useEffect(() => {
-    if (user?.role === "client" && selectedKid) {
-      dispatch(setSelectedKidId(selectedKid));
-      triggerGetKid(selectedKid);
+    if (user?.role === "client" || user?.role === "parent") {
+      if (selectedKid) {
+        console.log("Fetching kid details for:", selectedKid);
+        dispatch(setSelectedKidId(selectedKid));
+        triggerGetKid(selectedKid);
+      }
     }
   }, [user?.role, selectedKid, triggerGetKid, dispatch]);
 
@@ -127,33 +167,34 @@ export function DashboardHeader() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-      {/* Main header container */}
       <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
-        {/* Left side */}
         <div className="text-center md:text-left">
           <h1 className="text-base sm:text-lg font-semibold text-gray-800">
             {config?.greeting}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500">{config?.subtitle}</p>
 
-          {user.role === "client" && selectedKid && (
-            <p className="text-[11px] sm:text-xs text-gray-400 mt-1">
-              {isKidLoading
-                ? "Loading kid details..."
-                : kidResp?.data?.name
-                ? `Selected: ${kidResp.data.name}`
-                : (() => {
-                    const fallback = kidsForUi.find((k) => k.id === selectedKid);
-                    return fallback ? `Selected: ${fallback.name}` : null;
-                  })()}
-            </p>
-          )}
+          {(user.role === "client" || user.role === "parent") &&
+            selectedKid && (
+              <p className="text-[11px] sm:text-xs text-gray-400 mt-1">
+                {isKidLoading
+                  ? "Loading kid details..."
+                  : kidResp?.data?.name
+                  ? `Selected: ${kidResp.data.name}`
+                  : (() => {
+                      const fallback =
+                        kidsForUi.find((k: { id: string; }) => k.id === selectedKid) ||
+                        apiKids.find((k) => k.id === selectedKid);
+                      return fallback ? `Selected: ${fallback.name}` : null;
+                    })()}
+              </p>
+            )}
         </div>
 
-        {/* Right side: Kid selector */}
-        {user.role === "client" && (
+        {(user.role === "client" || user.role === "parent") && (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 text-center sm:text-left">
             <h4 className="text-sm font-bold text-gray-700">Kid's Name:</h4>
+
             {kidsForUi && kidsForUi.length > 0 ? (
               kidsForUi.length === 1 ? (
                 <span className="px-3 py-1 rounded-md bg-gray-100 text-sm font-medium text-gray-700 shadow-sm">
@@ -163,6 +204,7 @@ export function DashboardHeader() {
                 <Select
                   value={selectedKid}
                   onValueChange={(val) => {
+                    console.log("Manual select kid:", val);
                     setSelectedKid(val);
                     dispatch(setSelectedKidId(val));
                   }}
@@ -171,7 +213,7 @@ export function DashboardHeader() {
                     <SelectValue placeholder="Select Kid" />
                   </SelectTrigger>
                   <SelectContent>
-                    {kidsForUi.map((kid) => (
+                    {kidsForUi.map((kid: { id: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }) => (
                       <SelectItem key={kid.id} value={String(kid.id)}>
                         {kid.name}
                       </SelectItem>
@@ -181,7 +223,7 @@ export function DashboardHeader() {
               )
             ) : (
               <span className="px-3 py-1 rounded-md bg-gray-50 text-sm font-medium text-gray-400 italic">
-                Kid Name
+                No kids found
               </span>
             )}
           </div>
