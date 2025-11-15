@@ -1,28 +1,50 @@
-import { SessionsService } from './sessions.service';
-import { SessionType, SessionStatus } from '../../schemas/session.schema';
-export declare class CreateSessionDto {
-    type: SessionType;
-    coachId: string;
-    childIds: string[];
-    locationId: string;
-    startAt: Date;
-    endAt: Date;
-}
-export declare class UpdateSessionDto {
-    type?: SessionType;
-    coachId?: string;
-    childIds?: string[];
-    locationId?: string;
-    startAt?: Date;
-    endAt?: Date;
-    status?: SessionStatus;
-}
+import * as sessionsService_1 from './sessions.service';
 export declare class SessionsController {
     private readonly sessionsService;
-    constructor(sessionsService: SessionsService);
-    create(createSessionDto: CreateSessionDto): Promise<import("../../schemas/session.schema").Session>;
-    findAll(coachId?: string, childId?: string, startDate?: string, endDate?: string, status?: SessionStatus): Promise<import("../../schemas/session.schema").Session[]>;
-    findOne(id: string): Promise<import("../../schemas/session.schema").Session | null>;
-    update(id: string, updateSessionDto: UpdateSessionDto): Promise<import("../../schemas/session.schema").Session | null>;
-    remove(id: string): Promise<import("../../schemas/session.schema").Session | null>;
+    private readonly logger;
+    constructor(sessionsService: sessionsService_1.SessionsService);
+    create(createSessionDto: sessionsService_1.CreateSessionDto, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: import("../../schemas/session.schema").Session;
+    }>;
+    findAll(queryParams: sessionsService_1.SessionsQueryParams, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            sessions: import("../../schemas/session.schema").Session[];
+            total: number;
+            pagination: any;
+        };
+    }>;
+    getUpcomingSessions(limit: string, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: import("../../schemas/session.schema").Session[];
+    }>;
+    getUpcomingByKid(kidId: string, limit: string, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: import("../../schemas/session.schema").Session[];
+    }>;
+    checkAvailability(coachId: string, location: string, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: any;
+    }>;
+    findOne(id: string, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: import("../../schemas/session.schema").Session;
+    }>;
+    update(id: string, updateSessionDto: sessionsService_1.UpdateSessionDto, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: import("../../schemas/session.schema").Session | null;
+    }>;
+    remove(id: string, user: any): Promise<{
+        success: boolean;
+        message: string;
+        data: import("../../schemas/session.schema").Session | null;
+    }>;
 }

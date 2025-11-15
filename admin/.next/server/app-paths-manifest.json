@@ -1,6 +1,7 @@
 {
   "/(authenticated)/crm/page": "app/(authenticated)/crm/page.js",
   "/(authenticated)/dashboard/page": "app/(authenticated)/dashboard/page.js",
+  "/(authenticated)/sessions/page": "app/(authenticated)/sessions/page.js",
   "/(authenticated)/users/parents/page": "app/(authenticated)/users/parents/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/login/page": "app/login/page.js"
