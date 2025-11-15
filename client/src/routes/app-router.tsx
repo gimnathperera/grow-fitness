@@ -1,6 +1,7 @@
 import type React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HomePage } from '@/pages';
+import ProfilePage from '@/pages/profile/components/profile-page';
 import RootLayout from '@/layouts/root-layout';
 import LoginPage from '@/pages/sign-in-page';
 import CoachPage from '@/pages/coach-dashboard/page';
@@ -13,7 +14,6 @@ import ClientDashboard from '@/pages/client-dashboard-page/page';
 import ForgotPasswordPage from '@/pages/forgot-password';
 import CoachBadges from '@/pages/coach-dashboard/components/kids-progress';
 import CollectInfoPage from '@/pages/collect-info-page';
-import ProfileIndex from '@/pages/profile';
 
 const AppRouter: React.FC = () => {
   return (
@@ -68,14 +68,7 @@ const AppRouter: React.FC = () => {
           <Route path="collect-info" element={<CollectInfoPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="kids-progress" element={<CoachBadges />} />
-          <Route
-            path="profile"
-            element={
-              <RequireAuth requiredRoles={["client", "coach", "team", "admin"]}>
-                <ProfileIndex />
-              </RequireAuth>
-            }
-          />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </Router>

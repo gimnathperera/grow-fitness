@@ -1,9 +1,12 @@
+import type { ReactNode } from "react";
+
 export interface Coach {
   id: string;
   name: string;
 }
 
 export interface TimeSlot {
+  day: ReactNode;
   id: string;
   time: string;
   available: boolean;
