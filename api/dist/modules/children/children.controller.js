@@ -18,7 +18,6 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const children_service_1 = require("./children.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
-const admin_guard_1 = require("../auth/admin.guard");
 const user_decorator_1 = require("../../decorators/user.decorator");
 const user_schema_1 = require("../../schemas/user.schema");
 const child_dto_1 = require("./dto/child.dto");
@@ -30,19 +29,26 @@ let ChildrenController = ChildrenController_1 = class ChildrenController {
     }
     async findAll(parentId, user) {
         this.logger.debug(`[ChildrenController] User ${user.id} (${user.role}) fetching children`);
+        const currentUserId = user.id || user.userId;
+        if (!currentUserId) {
+            this.logger.warn(`[ChildrenController] User not authenticated trying to fetch children`);
+            throw new common_1.ForbiddenException('User not authenticated');
+        }
         if (user.role === user_schema_1.UserRole.ADMIN) {
             this.logger.debug(`[ChildrenController] Admin fetching children with filter parentId=${parentId}`);
             const result = await this.childrenService.findAll(parentId);
             this.logger.debug(`[ChildrenController] Admin fetched ${result.length} children`);
             return result;
         }
-        const currentUserId = user.id || user.userId;
-        if (!currentUserId) {
-            this.logger.warn(`[ChildrenController] User not authenticated trying to fetch children`);
-            throw new common_1.ForbiddenException('User not authenticated');
+        const targetParentId = parentId || currentUserId;
+        const targetParentIdStr = String(targetParentId);
+        const currentUserIdStr = String(currentUserId);
+        if (targetParentIdStr !== currentUserIdStr) {
+            this.logger.warn(`[ChildrenController] Parent ${currentUserIdStr} tried to access children of parent ${targetParentIdStr}`);
+            throw new common_1.ForbiddenException('You can only access your own children');
         }
-        this.logger.debug(`[ChildrenController] Parent ${currentUserId} fetching their own children`);
-        const result = await this.childrenService.findByParentId(parentId);
+        this.logger.debug(`[ChildrenController] Parent ${currentUserIdStr} fetching their own children`);
+        const result = await this.childrenService.findByParentId(currentUserIdStr);
         this.logger.debug(`[ChildrenController] Parent fetched ${result.length} children`);
         return result;
     }
@@ -53,8 +59,11 @@ let ChildrenController = ChildrenController_1 = class ChildrenController {
             this.logger.warn(`[ChildrenController] Child ${id} not found`);
             throw new common_1.NotFoundException('Child not found');
         }
-        if (user.role !== user_schema_1.UserRole.ADMIN && child.parentId.toString() !== (user.id || user.userId)) {
-            this.logger.warn(`[ChildrenController] User ${user.id} unauthorized to access child ${id}`);
+        const currentUserId = user.id || user.userId;
+        const childParentIdStr = String(child.parentId);
+        const currentUserIdStr = String(currentUserId);
+        if (user.role !== user_schema_1.UserRole.ADMIN && childParentIdStr !== currentUserIdStr) {
+            this.logger.warn(`[ChildrenController] User ${currentUserIdStr} unauthorized to access child ${id} (parent: ${childParentIdStr})`);
             throw new common_1.ForbiddenException('Not authorized to view this child');
         }
         this.logger.debug(`[ChildrenController] Child ${id} fetched successfully`);
@@ -112,8 +121,11 @@ let ChildrenController = ChildrenController_1 = class ChildrenController {
             this.logger.warn(`[ChildrenController] Child ${id} not found for update`);
             throw new common_1.NotFoundException('Child not found');
         }
-        if (user.role !== user_schema_1.UserRole.ADMIN && child.parentId.toString() !== (user.id || user.userId)) {
-            this.logger.warn(`[ChildrenController] User ${user.id} unauthorized to update child ${id}`);
+        const currentUserId = user.id || user.userId;
+        const childParentIdStr = String(child.parentId);
+        const currentUserIdStr = String(currentUserId);
+        if (user.role !== user_schema_1.UserRole.ADMIN && childParentIdStr !== currentUserIdStr) {
+            this.logger.warn(`[ChildrenController] User ${currentUserIdStr} unauthorized to update child ${id} (parent: ${childParentIdStr})`);
             throw new common_1.ForbiddenException('You can only update your own children');
         }
         const updatedChild = await this.childrenService.update(id, updateChildDto);
@@ -121,9 +133,21 @@ let ChildrenController = ChildrenController_1 = class ChildrenController {
         return updatedChild;
     }
     async remove(id, user) {
-        this.logger.log(`[ChildrenController] Admin ${user.id} deleting child ${id}`);
+        this.logger.debug(`[ChildrenController] User ${user.id} (${user.role}) attempting to delete child ${id}`);
+        const child = await this.childrenService.findOne(id);
+        if (!child) {
+            this.logger.warn(`[ChildrenController] Child ${id} not found for deletion`);
+            throw new common_1.NotFoundException('Child not found');
+        }
+        const currentUserId = user.id || user.userId;
+        const childParentIdStr = String(child.parentId);
+        const currentUserIdStr = String(currentUserId);
+        if (user.role !== user_schema_1.UserRole.ADMIN && childParentIdStr !== currentUserIdStr) {
+            this.logger.warn(`[ChildrenController] User ${currentUserIdStr} unauthorized to delete child ${id} (parent: ${childParentIdStr})`);
+            throw new common_1.ForbiddenException('You can only delete your own children');
+        }
         const result = await this.childrenService.remove(id);
-        this.logger.log(`[ChildrenController] Child ${id} deleted successfully`);
+        this.logger.log(`[ChildrenController] Child ${id} deleted by user ${currentUserIdStr} (${user.role})`);
         return result;
     }
 };
@@ -142,6 +166,11 @@ __decorate([
 ], ChildrenController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get a specific child by ID' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Child ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Child details', type: child_dto_1.ChildDto }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Child not found' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -150,6 +179,9 @@ __decorate([
 ], ChildrenController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create one or multiple children' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Children created successfully', type: [child_dto_1.ChildDto] }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -158,6 +190,11 @@ __decorate([
 ], ChildrenController.prototype, "create", null);
 __decorate([
     (0, common_1.Patch)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a child' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Child ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Child updated successfully', type: child_dto_1.ChildDto }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Child not found' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, user_decorator_1.User)()),
@@ -167,7 +204,11 @@ __decorate([
 ], ChildrenController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete a child (admin or parent owner)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Child ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Child deleted successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Child not found' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),

@@ -16,10 +16,8 @@ interface OverviewTabProps {
 export function OverviewTab({ kidId }: OverviewTabProps) {
   const dispatch = useDispatch();
 
-  // ONE lazy query only
   const [fetchKid, { data: kidData, isLoading, isError }] = useLazyGetKidQuery();
 
-  // Load kidId from cookies if available
   useEffect(() => {
     const savedKidId = Cookies.get("kidId");
 
@@ -28,30 +26,21 @@ export function OverviewTab({ kidId }: OverviewTabProps) {
 
       fetchKid(savedKidId)
         .unwrap()
-        .then(res => {
-          if (res?.data) dispatch(setSelectedKidDetails(res.data));
-        })
-        .catch(err => console.log("Cookie fetch error:", err));
+        .then(response => dispatch(setSelectedKidDetails(response.data)))
+        .catch(console.log);
     }
   }, [dispatch, kidId, fetchKid]);
 
-  // Fetch when kidId changes
   useEffect(() => {
     if (!kidId) return;
 
     fetchKid(kidId)
       .unwrap()
-      .then(res => {
-        if (res?.data) dispatch(setSelectedKidDetails(res.data));
-      })
-      .catch(err => console.log("Fetch error:", err));
+      .then(res => dispatch(setSelectedKidDetails(res.data)))
+      .catch(console.log);
   }, [kidId, fetchKid, dispatch]);
 
-  console.log("kidData", kidData);
-  console.log("kidId", kidId);
-  console.log("isError", isError);
-
-  const selectedKid = kidData?.data;
+  const selectedKid = kidData;
 
   const kidAge = useMemo(() => {
     if (!selectedKid) return null;
@@ -69,21 +58,13 @@ export function OverviewTab({ kidId }: OverviewTabProps) {
       }
       return age;
     }
-
     return null;
   }, [selectedKid]);
 
   if (!kidId) return <div className="p-8 text-center text-gray-500">No kid selected</div>;
-
-  if (isLoading)
-    return <Loader2 className="h-8 w-8 animate-spin text-[#23B685]" />;
-
+  if (isLoading) return <Loader2 className="h-8 w-8 animate-spin text-[#23B685]" />;
   if (isError || !selectedKid)
-    return (
-      <div className="p-8 text-center text-red-500">
-        Failed to load kid's information
-      </div>
-    );
+    return <div className="p-8 text-center text-red-500">Failed to load kid's information</div>;
 
   const displayCoach = selectedKid.coachId || 'Not assigned';
   const memberSince = selectedKid.createdAt
@@ -93,7 +74,8 @@ export function OverviewTab({ kidId }: OverviewTabProps) {
   return (
     <div className="space-y-6 relative z-0">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Child Profile */}
+        
+        {/* Kid Profile */}
         <Card className="border-[#23B685]/20">
           <CardHeader>
             <CardTitle className="text-[#243E36] flex items-center">
@@ -112,9 +94,7 @@ export function OverviewTab({ kidId }: OverviewTabProps) {
                   <h3 className="font-semibold text-[#243E36]">{selectedKid.name}</h3>
 
                   {kidAge !== null && (
-                    <p className="text-gray-600">
-                      {kidAge} {kidAge === 1 ? 'year' : 'years'} old
-                    </p>
+                    <p className="text-gray-600">{kidAge} {kidAge === 1 ? 'year' : 'years'} old</p>
                   )}
 
                   <Badge variant="secondary" className="bg-[#23B685]/10 text-[#23B685] mt-1">
@@ -135,13 +115,58 @@ export function OverviewTab({ kidId }: OverviewTabProps) {
                   <span className="text-sm text-gray-600">Member Since:</span>
                   <span className="text-sm font-medium text-[#243E36]">{memberSince}</span>
                 </div>
+
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Gender:</span>
+                  <span className="text-sm font-medium text-[#243E36]">{selectedKid.gender}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Location:</span>
+                  <span className="text-sm font-medium text-[#243E36]">{selectedKid.location}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Training Preference:</span>
+                  <span className="text-sm font-medium text-[#243E36] capitalize">
+                    {selectedKid.trainingPreference}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">In Sports:</span>
+                  <span className="text-sm font-medium text-[#243E36]">
+                    {selectedKid.isInSports ? "Yes" : "No"}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Medical Condition:</span>
+                  <span className="text-sm font-medium text-[#243E36]">
+                    {selectedKid.medicalCondition || "None"}
+                  </span>
+                </div>
+
+                  {selectedKid.goals?.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-600">Goals:</span>
+                    <ul className="list-disc ml-5 text-sm text-[#243E36]">
+                      {selectedKid.goals.map((goal: string, i: number) => (
+                        <li key={i}>{goal}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
               </div>
+            </div>
+            <div className="space-y-3">
             </div>
           </CardContent>
         </Card>
 
         {/* Upcoming Sessions */}
-        <Card className="border-[#23B685]/20 relative z-10">
+        <Card className="border-[#23B685]/20">
           <CardHeader>
             <CardTitle className="text-[#243E36] flex items-center">
               <Calendar className="mr-2 h-5 w-5" />
