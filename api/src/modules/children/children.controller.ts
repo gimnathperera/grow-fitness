@@ -12,13 +12,23 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiResponse, 
+  ApiBearerAuth, 
+  ApiParam,
+  ApiQuery
+} from '@nestjs/swagger';
 import { ChildrenService } from './children.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { User } from '../../decorators/user.decorator';
 import { UserRole } from '../../schemas/user.schema';
-import { CreateChildDto, UpdateChildDto } from './dto/child.dto';
+import { CreateChildDto, UpdateChildDto, ChildDto } from './dto/child.dto';
 
+@ApiTags('children')
+@ApiBearerAuth()
 @Controller('children')
 @UseGuards(JwtAuthGuard)
 export class ChildrenController {
@@ -27,6 +37,10 @@ export class ChildrenController {
   constructor(private readonly childrenService: ChildrenService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Get all children (admin) or children of a specific parent' })
+  @ApiQuery({ name: 'parentId', required: false, description: 'Filter by parent ID' })
+  @ApiResponse({ status: 200, description: 'List of children', type: [ChildDto] })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async findAll(@Query('parentId') parentId: string, @User() user: any) {
     this.logger.debug(`[ChildrenController] User ${user.id} (${user.role}) fetching children`);
 

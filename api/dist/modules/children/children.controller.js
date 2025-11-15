@@ -15,6 +15,7 @@ var ChildrenController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChildrenController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const children_service_1 = require("./children.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const admin_guard_1 = require("../auth/admin.guard");
@@ -129,6 +130,10 @@ let ChildrenController = ChildrenController_1 = class ChildrenController {
 exports.ChildrenController = ChildrenController;
 __decorate([
     (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all children (admin) or children of a specific parent' }),
+    (0, swagger_1.ApiQuery)({ name: 'parentId', required: false, description: 'Filter by parent ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'List of children', type: [child_dto_1.ChildDto] }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden' }),
     __param(0, (0, common_1.Query)('parentId')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -170,6 +175,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChildrenController.prototype, "remove", null);
 exports.ChildrenController = ChildrenController = ChildrenController_1 = __decorate([
+    (0, swagger_1.ApiTags)('children'),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('children'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [children_service_1.ChildrenService])

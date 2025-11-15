@@ -9,8 +9,77 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateChildDto = exports.CreateChildDto = void 0;
+exports.UpdateChildDto = exports.CreateChildDto = exports.ChildDto = void 0;
 const class_validator_1 = require("class-validator");
+const swagger_1 = require("@nestjs/swagger");
+class ChildDto {
+    id;
+    parentId;
+    name;
+    birthDate;
+    age;
+    gender;
+    location;
+    goals = [];
+    medicalCondition;
+    isInSports = false;
+    trainingPreference;
+    createdAt;
+    updatedAt;
+}
+exports.ChildDto = ChildDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The unique identifier of the child' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The ID of the parent user' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "parentId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The name of the child' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'The birth date of the child' }),
+    __metadata("design:type", Date)
+], ChildDto.prototype, "birthDate", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'The age of the child', minimum: 0, maximum: 18 }),
+    __metadata("design:type", Number)
+], ChildDto.prototype, "age", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: ['boy', 'girl'], description: 'The gender of the child' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "gender", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The location of the child' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "location", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [String], description: 'List of goals for the child' }),
+    __metadata("design:type", Array)
+], ChildDto.prototype, "goals", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Any medical conditions the child has' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "medicalCondition", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Whether the child is involved in sports', default: false }),
+    __metadata("design:type", Boolean)
+], ChildDto.prototype, "isInSports", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: ['personal', 'group'], description: 'Preferred training type' }),
+    __metadata("design:type", String)
+], ChildDto.prototype, "trainingPreference", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The date when the child record was created' }),
+    __metadata("design:type", Date)
+], ChildDto.prototype, "createdAt", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The date when the child record was last updated' }),
+    __metadata("design:type", Date)
+], ChildDto.prototype, "updatedAt", void 0);
 class CreateChildDto {
     parentId;
     name;
@@ -30,6 +99,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateChildDto.prototype, "parentId", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The name of the child' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
@@ -40,6 +110,7 @@ __decorate([
     __metadata("design:type", Date)
 ], CreateChildDto.prototype, "birthDate", void 0);
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'The age of the child', minimum: 0, maximum: 18 }),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.Min)(0),
@@ -47,16 +118,19 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateChildDto.prototype, "age", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ enum: ['boy', 'girl'], description: 'The gender of the child' }),
     (0, class_validator_1.IsIn)(['boy', 'girl']),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateChildDto.prototype, "gender", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The location of the child' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateChildDto.prototype, "location", void 0);
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [String], description: 'List of goals for the child' }),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
@@ -67,6 +141,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateChildDto.prototype, "medicalCondition", void 0);
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Whether the child is involved in sports', default: false }),
     (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
