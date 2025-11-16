@@ -2,12 +2,14 @@ import { Document, Types } from 'mongoose';
 export type SessionDocument = Session & Document;
 export declare enum SessionType {
     INDIVIDUAL = "individual",
-    GROUP = "group"
+    GROUP = "group",
+    TRAINING = "TRAINING"
 }
 export declare enum SessionStatus {
     BOOKED = "booked",
     CANCELED = "canceled",
-    COMPLETED = "completed"
+    COMPLETED = "completed",
+    CONFIRMED = "CONFIRMED"
 }
 export declare class Session {
     type: SessionType;

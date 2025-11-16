@@ -3,7 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 
-export function ProgressTab() {
+interface ProgressTabProps {
+  progress?: number;
+}
+
+export function ProgressTab({ progress }: ProgressTabProps) {
 
   return (
     <div className="space-y-6">
@@ -11,7 +15,7 @@ export function ProgressTab() {
         <CardHeader>
           <CardTitle className="text-[#243E36] flex items-center">
             <TrendingUp className="mr-2 h-5 w-5" />
-            Progress 
+            Progress {progress !== undefined ? `(${Math.round(progress)}%)` : ''}
           </CardTitle>
         </CardHeader>
 

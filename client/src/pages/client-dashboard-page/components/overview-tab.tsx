@@ -1,168 +1,196 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Calendar } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/store';
-import { useGetKidQuery } from '@/services/kidsApi';
-import { useEffect, useState } from 'react';
-import { useGetUpcomingByKidQuery } from '@/services/sessionsRtkApi';
-import { StatsGrid } from '@/components/stat-grid';
-import type { User as UserType, DashboardStats, Session } from '@/types/dashboard';
-import { sessions } from '@/data/coach/coach-dashboard';
-import SessionDetailsModal from '@/components/session-details-modal';
+import { useEffect, useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User, Calendar, Loader2 } from "lucide-react";
+import Cookies from "js-cookie";
+import { useDispatch } from "react-redux";
+
+import { useLazyGetKidQuery } from "@/services/kidsApi";
+import { useGetUpcomingByKidQuery } from "@/services/sessionsRtkApi";
+
+import { setSelectedKidId, setSelectedKidDetails } from "@/auth/authSlice";
 
 interface OverviewTabProps {
-  childData: {
-    name: string;
-    age: number;
-    coach: string;
-  };
+  kidId: string | null;
 }
 
-const stats: DashboardStats = {
-  totalChildren: 1,
-  todaySessions: 1,
-  upcomingSessions: 2,
-  weeklyProgress: 75,
-  avgProgress: 75,
-};
+export function OverviewTab({ kidId }: OverviewTabProps) {
+  const dispatch = useDispatch();
 
-const user: UserType = { name: 'Emma Johnson', role: 'parent' };
+  const [fetchKid, { data: kidData, isLoading }] = useLazyGetKidQuery();
 
-type SessionStatus = 'next' | 'upcoming' | 'later';
+  // ---------- FETCH KID ----------
+  useEffect(() => {
+    const savedKidId = Cookies.get("kidId");
 
-export function OverviewTab({ childData }: OverviewTabProps) {
-  const selectedKidId = useSelector((state: RootState) => state.auth.selectedKidId);
-  const { data: kidResp, isFetching: isKidLoading } = useGetKidQuery(selectedKidId as string, {
-    skip: !selectedKidId,
-  });
-  const { data: upcomingKidResp, isFetching: loadingUpcoming } = useGetUpcomingByKidQuery(
-    { kidId: selectedKidId as string, limit: 6 },
-    { skip: !selectedKidId }
-  );
+    if (savedKidId && !kidId) {
+      dispatch(setSelectedKidId(savedKidId));
 
-  const displayName = kidResp?.data?.name ?? childData?.name;
-  const displayAge = kidResp?.data?.age ?? childData?.age;
-  const displayCoach = (kidResp?.data as any)?.coach?.name ?? childData?.coach;
-  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+      fetchKid(savedKidId)
+        .unwrap()
+        .then((res) => dispatch(setSelectedKidDetails(res.data)))
+        .catch(console.log);
+    }
+  }, [kidId, fetchKid, dispatch]);
 
   useEffect(() => {
-    console.log('[OverviewTab][UpcomingByKid] selectedKidId:', selectedKidId);
-    if (!selectedKidId) {
-      console.warn('[OverviewTab][UpcomingByKid] No kid selected; skipping fetch');
+    if (!kidId) return;
+
+    fetchKid(kidId)
+      .unwrap()
+      .then((res) => dispatch(setSelectedKidDetails(res.data)))
+      .catch(console.log);
+  }, [kidId, fetchKid, dispatch]);
+
+  const selectedKid = kidData;
+
+  // ---------- FETCH UPCOMING SESSIONS ----------
+  const {
+    data: sessionData,
+    isLoading: sessionsLoading,
+    error: sessionsError,
+  } = useGetUpcomingByKidQuery({ kidId: kidId! }, { skip: !kidId });
+
+  const sessions = sessionData?.data || [];
+
+  // ---------- AGE ----------
+  const kidAge = useMemo(() => {
+    if (!selectedKid) return null;
+
+    if (selectedKid.age) return selectedKid.age;
+
+    if (selectedKid.birthDate) {
+      const bd = new Date(selectedKid.birthDate);
+      const now = new Date();
+      let age = now.getFullYear() - bd.getFullYear();
+
+      if (
+        now.getMonth() < bd.getMonth() ||
+        (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())
+      ) {
+        age--;
+      }
+      return age;
     }
-  }, [selectedKidId]);
 
-  useEffect(() => {
-    if (!loadingUpcoming) {
-      console.log('[OverviewTab][UpcomingByKid] response:', upcomingKidResp);
-    }
-  }, [loadingUpcoming, upcomingKidResp]);
+    return null;
+  }, [selectedKid]);
 
-  const getStatusBadge = (status: SessionStatus) => {
-    const badges = {
-      next: <Badge className="bg-[#23B685] text-white">Next</Badge>,
-      upcoming: <Badge variant="outline">Upcoming</Badge>,
-      later: <Badge variant="outline">Later</Badge>,
-    };
-    return badges[status];
-  };
+  // ---------- UI STATES ----------
+  if (!kidId) return <div className="p-8 text-center text-gray-500">No kid selected</div>;
+  if (isLoading) return <Loader2 className="h-8 w-8 animate-spin text-[#23B685]" />;
+  if (!selectedKid) return <div className="p-8 text-center text-red-500">Failed to load child</div>;
 
-  const SessionItem = ({ session }: { session: Session }) => (
-    <div
-      onClick={() => setSelectedSession(session)}
-      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-        session.status === 'next'
-          ? 'bg-[#23B685]/5 hover:bg-[#23B685]/10'
-          : 'border border-gray-200 hover:bg-gray-50'
-      }`}
-    >
-      <div>
-        <h3 className="font-semibold text-[#243E36]">{session.name}</h3>
-        <p className="text-sm text-gray-600">{session.time}</p>
-        <p className="text-xs text-gray-500">
-          {session.studentsCount}{' '}
-          {user.role === 'coach' ? 'students enrolled' : 'spots available'}
-        </p>
-      </div>
-      {getStatusBadge(session.status)}
-    </div>
-  );
+  const memberSince = selectedKid.createdAt
+    ? new Date(selectedKid.createdAt).toLocaleDateString()
+    : "N/A";
+
+  const displayCoach = selectedKid.coachId || "Not Assigned";
 
   return (
-    <>
-      <div className="space-y-6 relative z-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Child Profile */}
-          <Card className="border-[#23B685]/20">
-            <CardHeader>
-              <CardTitle className="text-[#243E36] flex items-center">
-                <User className="mr-2 h-5 w-5" />
-                Child Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-[#23B685]/10 rounded-full flex items-center justify-center">
-                    <User className="h-8 w-8 text-[#23B685]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#243E36]">
-                      {isKidLoading ? 'Loading...' : displayName}
-                    </h3>
-                    <p className="text-gray-600">{displayAge} years old</p>
-                    <Badge variant="secondary" className="bg-[#23B685]/10 text-[#23B685]">
-                      Active Member
-                    </Badge>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Current Coach:</span>
-                    <span className="text-sm font-medium text-[#243E36]">{displayCoach}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Program:</span>
-                    <span className="text-sm font-medium text-[#243E36]">Kids Fitness Fun</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Member Since:</span>
-                    <span className="text-sm font-medium text-[#243E36]">January 2024</span>
-                  </div>
-                </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* ---------- CHILD PROFILE ---------- */}
+        <Card className="border-[#23B685]/20">
+          <CardHeader>
+            <CardTitle className="text-[#243E36] flex items-center">
+              <User className="mr-2 h-5 w-5" />
+              Child Profile
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="w-16 h-16 bg-[#23B685]/10 rounded-full flex items-center justify-center">
+                <User className="h-8 w-8 text-[#23B685]" />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Upcoming Sessions */}
-          <Card className="border-[#23B685]/20 relative z-10">
-            <CardHeader>
-              <CardTitle className="text-[#243E36] flex items-center">
-                <Calendar className="mr-2 h-5 w-5" />
-                {user.role === 'coach' ? "Today's Schedule" : 'Upcoming Sessions'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 overflow-y-auto max-h-[400px]">
-              {sessions.map((session) => (
-                <SessionItem key={session.id} session={session} />
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+              <div>
+                <h3 className="font-semibold text-[#243E36]">{selectedKid.name}</h3>
 
-        {/* Stats */}
-        <StatsGrid stats={stats} user={user} />
+                {kidAge !== null && (
+                  <p className="text-gray-600">{kidAge} {kidAge === 1 ? "year" : "years"} old</p>
+                )}
+
+                <Badge className="bg-[#23B685]/10 text-[#23B685] mt-1">
+                  {selectedKid.status?.toLowerCase() === "active" ? "Active Member" : "Inactive"}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Kid Info */}
+            <div className="space-y-2">
+              <InfoRow label="Current Coach" value={displayCoach} />
+              <InfoRow label="Member Since" value={memberSince} />
+              <InfoRow label="Gender" value={selectedKid.gender} />
+              <InfoRow label="Location" value={selectedKid.location} />
+              <InfoRow label="Training Preference" value={selectedKid.trainingPreference} />
+              <InfoRow label="In Sports" value={selectedKid.isInSports ? "Yes" : "No"} />
+              <InfoRow label="Medical Condition" value={selectedKid.medicalCondition || "None"} />
+
+              {selectedKid.goals?.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-600">Goals:</p>
+                  <ul className="ml-5 list-disc text-sm text-[#243E36]">
+                    {selectedKid.goals.map((g: string, i: number) => (
+                      <li key={i}>{g}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ---------- UPCOMING SESSIONS ---------- */}
+        <Card className="border-[#23B685]/20">
+          <CardHeader>
+            <CardTitle className="text-[#243E36] flex items-center">
+              <Calendar className="mr-2 h-5 w-5" />
+              Upcoming Sessions
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-4 max-h-[400px] overflow-y-auto">
+
+            {sessionsLoading && (
+              <Loader2 className="h-6 w-6 animate-spin text-[#23B685]" />
+            )}
+
+            {sessionsError && (
+              <p className="text-red-500">Failed to load sessions</p>
+            )}
+
+            {!sessionsLoading && sessions.length === 0 && (
+              <p className="text-gray-500">No upcoming sessions</p>
+            )}
+
+            {sessions.map((session: any) => (
+              <div
+                key={session.id}
+                className="p-3 border rounded-lg shadow-sm bg-white"
+              >
+                <p className="text-[#243E36] font-medium">{session.title}</p>
+                <p className="text-sm text-gray-500">{session.date}</p>
+                <p className="text-sm text-gray-500">{session.time}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
+    </div>
+  );
+}
 
-      {/* Session Details Modal */}
-      <SessionDetailsModal
-        session={selectedSession}
-        open={!!selectedSession}
-        onClose={() => setSelectedSession(null)}
-      />
-    </>
+// Small Reusable Component
+function InfoRow({ label, value }: any) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-sm text-gray-600">{label}:</span>
+      <span className="text-sm font-medium text-[#243E36]">{value}</span>
+    </div>
   );
 }

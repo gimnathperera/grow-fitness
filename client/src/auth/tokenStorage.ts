@@ -6,6 +6,22 @@ export interface PersistedAuthState {
   expiresAt: string | null;
   user: components['schemas']['UserProfileDto'] | null;
   selectedKidId?: string | null;
+  selectedKidDetails?: {
+    id: string;
+    name: string;
+    gender: 'boy' | 'girl';
+    location: string;
+    birthDate?: string;
+    age?: number;
+    parentId?: string;
+    goals?: string[];
+    medicalCondition?: string;
+    isInSports?: boolean;
+    trainingPreference?: 'personal' | 'group';
+    preferredTrainingStyle?: 'personal' | 'group';
+    createdAt: string;
+    updatedAt?: string;
+  } | null;
 }
 
 const STORAGE_KEY = 'grow-fitness/auth';

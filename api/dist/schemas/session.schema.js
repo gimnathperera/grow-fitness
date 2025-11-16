@@ -16,12 +16,14 @@ var SessionType;
 (function (SessionType) {
     SessionType["INDIVIDUAL"] = "individual";
     SessionType["GROUP"] = "group";
+    SessionType["TRAINING"] = "TRAINING";
 })(SessionType || (exports.SessionType = SessionType = {}));
 var SessionStatus;
 (function (SessionStatus) {
     SessionStatus["BOOKED"] = "booked";
     SessionStatus["CANCELED"] = "canceled";
     SessionStatus["COMPLETED"] = "completed";
+    SessionStatus["CONFIRMED"] = "CONFIRMED";
 })(SessionStatus || (exports.SessionStatus = SessionStatus = {}));
 let Session = class Session {
     type;
