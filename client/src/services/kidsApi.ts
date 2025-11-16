@@ -70,6 +70,15 @@ export const kidsApi = baseApi.injectEndpoints({
       invalidatesTags: ['Kid'],
       extraOptions: { maxRetries: 0 },
     }),
+    
+    deleteKid: builder.mutation<ApiSuccessResponse<{ success: boolean }>, string>({
+      query: (id) => ({
+        url: `/children/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Kid'],
+      extraOptions: { maxRetries: 0 },
+    }),
   }),
   overrideExisting: false,
 });
@@ -80,4 +89,5 @@ export const {
   useGetKidsQuery,
   useLazyGetKidQuery,
   useUpdateKidMutation,
+  useDeleteKidMutation,
 } = kidsApi;

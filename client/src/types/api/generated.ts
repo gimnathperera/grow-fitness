@@ -575,6 +575,11 @@ export interface components {
       expiresAt: string;
     };
     UserProfileDto: {
+      timeSlots: boolean;
+      invoices: boolean;
+      kids: any;
+      profilePic: string | undefined;
+      location: string;
       /** @example 507f1f77bcf86cd799439011 */
       id: string;
       /** @example user@example.com */

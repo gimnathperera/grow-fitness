@@ -49,6 +49,7 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
+                envFilePath: '.env.local',
             }),
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI ||

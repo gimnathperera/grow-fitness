@@ -39,33 +39,44 @@ export const clientsApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     getClients: builder.query<ApiSuccessResponse<ClientsListResponse>, ClientsQueryParams | void>({
       query: params => ({
-        url: '/clients',
+        url: '/users',
         method: 'GET',
         params: params || {},
       }),
       providesTags: ['Client'],
     }),
+
     getClientById: builder.query<ApiSuccessResponse<ClientProfile>, string>({
       query: id => ({
-        url: `/clients/${id}`,
+        url: `/users/${id}`,
         method: 'GET',
       }),
       providesTags: (_, __, id) => [{ type: 'Client', id }, 'Client'],
     }),
+
     getMyClientProfile: builder.query<ApiSuccessResponse<ClientProfile>, void>({
       query: () => ({
-        url: '/clients/my-profile',
+        url: '/users/my-profile',
         method: 'GET',
       }),
       providesTags: ['Client'],
     }),
+
     updateClient: builder.mutation<ApiSuccessResponse<ClientProfile>, { id: string; payload: Partial<ClientProfile> }>({
       query: ({ id, payload }) => ({
-        url: `/clients/${id}`,
+        url: `/users/${id}`,
         method: 'PATCH',
         body: payload,
       }),
       invalidatesTags: (_, __, { id }) => [{ type: 'Client', id }, 'Client'],
+    }),
+
+    deleteKid: builder.mutation<ApiSuccessResponse<{ success: boolean }>, { kidId: string }>({
+      query: ({ kidId }) => ({
+        url: `/kids/${kidId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Client'],
     }),
   }),
   overrideExisting: false,
@@ -77,4 +88,5 @@ export const {
   useGetClientByIdQuery,
   useGetMyClientProfileQuery,
   useUpdateClientMutation,
+  useDeleteKidMutation,
 } = clientsApi;

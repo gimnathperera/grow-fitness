@@ -1,0 +1,35 @@
+export const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+export const formatDate = (dateString?: string) =>
+  dateString
+    ? new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "N/A";
+
+export const formatCurrency = (amount?: number) =>
+  amount !== undefined
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
+    : "$0.00";
+
+export const getStatusColor = (status?: string) => {
+  switch (status) {
+    case "paid":
+      return "bg-green-500 text-white";
+    case "pending":
+      return "bg-yellow-500 text-white";
+    case "overdue":
+    case "unpaid":
+      return "bg-red-600 text-white";
+    default:
+      return "bg-gray-300 text-gray-700";
+  }
+};

@@ -12,6 +12,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const sessions_controller_1 = require("./sessions.controller");
 const sessions_service_1 = require("./sessions.service");
 const session_schema_1 = require("../../schemas/session.schema");
+const child_schema_1 = require("../../schemas/child.schema");
 const auth_module_1 = require("../auth/auth.module");
 let SessionsModule = class SessionsModule {
 };
@@ -19,7 +20,10 @@ exports.SessionsModule = SessionsModule;
 exports.SessionsModule = SessionsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: session_schema_1.Session.name, schema: session_schema_1.SessionSchema }]),
+            mongoose_1.MongooseModule.forFeature([
+                { name: session_schema_1.Session.name, schema: session_schema_1.SessionSchema },
+                { name: child_schema_1.Child.name, schema: child_schema_1.ChildSchema },
+            ]),
             auth_module_1.AuthModule,
         ],
         controllers: [sessions_controller_1.SessionsController],

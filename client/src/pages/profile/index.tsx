@@ -121,6 +121,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <div>Hiiiii</div>
       <ProfilePage user={user} />
     </div>
   );

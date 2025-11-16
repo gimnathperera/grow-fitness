@@ -22,7 +22,14 @@ type Milestone = {
   tasks: Task[];
 };
 
-export function MilestoneProgress() {
+interface MilestoneProgressProps {
+  achievements?: number;
+}
+
+export function MilestoneProgress({ achievements }: MilestoneProgressProps) {
+  // Use achievements to determine progress
+  const completedMilestones = achievements || 0;
+  
   // Generate 12 milestones dynamically
   const initialMilestones: Milestone[] = Array.from({ length: 12 }, (_, i) => ({
     id: `${i + 1}`,
@@ -112,11 +119,18 @@ export function MilestoneProgress() {
                   className="flex w-full items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-[#23B685]" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 text-[#23B685]" />
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-500 hover:text-gray-900"
+                      onClick={() => toggleExpand(milestone.id)}
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="w-5 h-5 text-[#23B685]" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-[#23B685]" />
+                      )}
+                    </Button>
                     <span
                       className={`font-semibold ${
                         completed ? 'text-[#23B685]' : 'text-gray-700'

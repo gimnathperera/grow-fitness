@@ -1,3 +1,18 @@
+export declare class ChildDto {
+    id: string;
+    parentId?: string;
+    name: string;
+    birthDate?: Date;
+    age?: number;
+    gender: 'boy' | 'girl';
+    location: string;
+    goals?: string[];
+    medicalCondition?: string;
+    isInSports?: boolean;
+    trainingPreference?: 'personal' | 'group';
+    createdAt: Date;
+    updatedAt: Date;
+}
 export declare class CreateChildDto {
     parentId?: string;
     name: string;

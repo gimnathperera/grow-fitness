@@ -31,10 +31,14 @@ exports.AuthModule = AuthModule = __decorate([
             ]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
-                useFactory: async (configService) => ({
-                    secret: configService.get('JWT_SECRET'),
-                    signOptions: { expiresIn: '24h' },
-                }),
+                useFactory: async (configService) => {
+                    const jwtSecret = configService.get('JWT_SECRET');
+                    console.log('Loaded JWT_SECRET:', jwtSecret || '❌ NOT FOUND');
+                    return {
+                        secret: jwtSecret,
+                        signOptions: { expiresIn: '24h' },
+                    };
+                },
                 inject: [config_1.ConfigService],
             }),
         ],

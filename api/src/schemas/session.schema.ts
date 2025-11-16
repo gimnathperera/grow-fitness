@@ -6,12 +6,14 @@ export type SessionDocument = Session & Document;
 export enum SessionType {
   INDIVIDUAL = 'individual',
   GROUP = 'group',
+  TRAINING = "TRAINING",
 }
 
 export enum SessionStatus {
   BOOKED = 'booked',
   CANCELED = 'canceled',
   COMPLETED = 'completed',
+  CONFIRMED = "CONFIRMED",
 }
 
 @Schema({ timestamps: true })

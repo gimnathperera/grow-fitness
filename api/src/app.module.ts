@@ -53,6 +53,7 @@ import { AuditLog, AuditLogSchema } from './schemas/audit-log.schema';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env.local',
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     MongooseModule.forRoot(

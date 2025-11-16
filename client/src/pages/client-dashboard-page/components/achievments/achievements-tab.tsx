@@ -3,7 +3,11 @@ import { Star, Heart, Trophy } from 'lucide-react';
 import { BadgeMap } from './tressure-map';
 import { MilestoneProgress } from './milestone-progress';
 
-export function AchievementsTab() {
+interface AchievementsTabProps {
+  achievements?: number;
+}
+
+export function AchievementsTab({ achievements }: AchievementsTabProps) {
   return (
     <div className="space-y-6">
       <Card className="border-[#23B685]/20">
@@ -15,7 +19,7 @@ export function AchievementsTab() {
         </CardHeader>
         <CardContent>
           <BadgeMap/>
-          <MilestoneProgress/>
+          <MilestoneProgress achievements={achievements} />
         </CardContent>
       </Card>
     </div>
