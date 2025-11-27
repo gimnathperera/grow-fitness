@@ -1,0 +1,2002 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Health check endpoint",
+        "tags": ["Health"]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "User already exists"
+          }
+        },
+        "summary": "Register a new user",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        },
+        "summary": "Login user",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokensDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid refresh token"
+          }
+        },
+        "summary": "Refresh access token",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout successful"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Logout user",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user profile",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change user password",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset email sent"
+          }
+        },
+        "summary": "Request password reset",
+        "tags": ["Authentication"]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully"
+          }
+        },
+        "summary": "Reset password with token",
+        "tags": ["Authentication"]
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["admin", "team", "coach", "client"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all users (Admin/Team only)",
+        "tags": ["Users"]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user by ID (Admin/Team only)",
+        "tags": ["Users"]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update user (Admin/Team only)",
+        "tags": ["Users"]
+      }
+    },
+    "/coaches": {
+      "post": {
+        "operationId": "CoachesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoachDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Coach created successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new coach profile",
+        "tags": ["Coaches"]
+      },
+      "get": {
+        "operationId": "CoachesController_findAll",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "acceptingNewClients",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "specialties",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coaches retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all coaches",
+        "tags": ["Coaches"]
+      }
+    },
+    "/coaches/available": {
+      "get": {
+        "operationId": "CoachesController_getAvailableCoaches",
+        "parameters": [
+          {
+            "name": "date",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "timeSlot",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "specialties",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available coaches retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get available coaches",
+        "tags": ["Coaches"]
+      }
+    },
+    "/coaches/my-profile": {
+      "get": {
+        "operationId": "CoachesController_getMyProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Coach profile retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current coach profile",
+        "tags": ["Coaches"]
+      }
+    },
+    "/coaches/{id}": {
+      "get": {
+        "operationId": "CoachesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coach retrieved successfully"
+          },
+          "404": {
+            "description": "Coach not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get coach by ID",
+        "tags": ["Coaches"]
+      },
+      "patch": {
+        "operationId": "CoachesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCoachDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Coach updated successfully"
+          },
+          "404": {
+            "description": "Coach not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update coach",
+        "tags": ["Coaches"]
+      },
+      "delete": {
+        "operationId": "CoachesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coach deleted successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete coach",
+        "tags": ["Coaches"]
+      }
+    },
+    "/coaches/{id}/stats": {
+      "get": {
+        "operationId": "CoachesController_getCoachStats",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coach statistics retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get coach statistics",
+        "tags": ["Coaches"]
+      }
+    },
+    "/clients": {
+      "post": {
+        "operationId": "ClientsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClientDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Client created successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new client profile",
+        "tags": ["Clients"]
+      },
+      "get": {
+        "operationId": "ClientsController_findAll",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "tags",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "assignedCoachId",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Clients retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all clients",
+        "tags": ["Clients"]
+      }
+    },
+    "/clients/my-profile": {
+      "get": {
+        "operationId": "ClientsController_getMyProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Client profile retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current client profile",
+        "tags": ["Clients"]
+      }
+    },
+    "/clients/{id}": {
+      "get": {
+        "operationId": "ClientsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client retrieved successfully"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get client by ID",
+        "tags": ["Clients"]
+      },
+      "patch": {
+        "operationId": "ClientsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClientDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Client updated successfully"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update client",
+        "tags": ["Clients"]
+      },
+      "delete": {
+        "operationId": "ClientsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client deleted successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete client",
+        "tags": ["Clients"]
+      }
+    },
+    "/clients/assign-coach": {
+      "post": {
+        "operationId": "ClientsController_assignCoach",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignCoachDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Coach assigned successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign coach to client",
+        "tags": ["Clients"]
+      }
+    },
+    "/sessions": {
+      "post": {
+        "operationId": "SessionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Session created successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new session",
+        "tags": ["Sessions"]
+      },
+      "get": {
+        "operationId": "SessionsController_findAll",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "scheduled",
+                "completed",
+                "canceled",
+                "no_show",
+                "in_progress"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "coachId",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          },
+          {
+            "name": "clientId",
+            "required": false,
+            "in": "query",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessions retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all sessions",
+        "tags": ["Sessions"]
+      }
+    },
+    "/sessions/upcoming": {
+      "get": {
+        "operationId": "SessionsController_getUpcomingSessions",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upcoming sessions retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get upcoming sessions",
+        "tags": ["Sessions"]
+      }
+    },
+    "/sessions/stats": {
+      "get": {
+        "operationId": "SessionsController_getSessionStats",
+        "parameters": [
+          {
+            "name": "coachId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["week", "month", "year"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session statistics retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get session statistics",
+        "tags": ["Sessions"]
+      }
+    },
+    "/sessions/check-availability": {
+      "post": {
+        "operationId": "SessionsController_checkAvailability",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckAvailabilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Availability checked successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Check coach availability",
+        "tags": ["Sessions"]
+      }
+    },
+    "/sessions/{id}": {
+      "get": {
+        "operationId": "SessionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session retrieved successfully"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get session by ID",
+        "tags": ["Sessions"]
+      },
+      "patch": {
+        "operationId": "SessionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session updated successfully"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update session",
+        "tags": ["Sessions"]
+      }
+    },
+    "/sessions/{id}/cancel": {
+      "post": {
+        "operationId": "SessionsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session canceled successfully"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel session",
+        "tags": ["Sessions"]
+      }
+    },
+    "/sessions/{id}/feedback": {
+      "post": {
+        "operationId": "SessionsController_addFeedback",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionFeedbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback added successfully"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add session feedback",
+        "tags": ["Sessions"]
+      }
+    },
+    "/calendar/connect": {
+      "post": {
+        "operationId": "CalendarController_connectCalendar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Calendar connected successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Connect Google Calendar",
+        "tags": ["Calendar"]
+      }
+    },
+    "/calendar/sync": {
+      "post": {
+        "operationId": "CalendarController_syncCalendar",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar synced successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sync calendar events",
+        "tags": ["Calendar"]
+      }
+    },
+    "/calendar/auth-url": {
+      "get": {
+        "operationId": "CalendarController_getAuthUrl",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OAuth URL generated successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get Google Calendar OAuth URL",
+        "tags": ["Calendar"]
+      }
+    },
+    "/team/assign-coach": {
+      "post": {
+        "operationId": "TeamController_assignCoach",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignCoachDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Coach assigned successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign coach to client (Team only)",
+        "tags": ["Team"]
+      }
+    }
+  },
+  "info": {
+    "title": "GROW Fitness API",
+    "description": "Generated via script for frontend consumption",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "SuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object",
+            "example": "req-123456"
+          }
+        },
+        "required": ["ok", "meta"]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "team", "coach", "client"],
+            "example": "client"
+          }
+        },
+        "required": ["email", "password", "name", "phone"]
+      },
+      "AuthTokensDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2024-01-01T12:00:00.000Z"
+          }
+        },
+        "required": ["accessToken", "refreshToken", "expiresAt"]
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "team", "coach", "client"],
+            "example": "client"
+          },
+          "status": {
+            "type": "string",
+            "example": "active"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "phone",
+          "role",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "tokens": {
+            "$ref": "#/components/schemas/AuthTokensDto"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfileDto"
+          }
+        },
+        "required": ["tokens", "user"]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "refresh-token-here"
+          }
+        },
+        "required": ["refreshToken"]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "currentPassword123"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "newPassword123"
+          }
+        },
+        "required": ["currentPassword", "newPassword"]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        "required": ["email"]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "reset-token-here"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "newPassword123"
+          }
+        },
+        "required": ["token", "newPassword"]
+      },
+      "AvailabilityRulesDto": {
+        "type": "object",
+        "properties": {
+          "workingDays": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "workingHours": {
+            "type": "object"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "maxSessionsPerDay": {
+            "type": "number"
+          },
+          "maxSessionsPerWeek": {
+            "type": "number"
+          },
+          "breakTimeBetweenSessions": {
+            "type": "number"
+          }
+        },
+        "required": ["workingDays", "workingHours", "timezone"]
+      },
+      "SessionTypeDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "price": {
+            "type": "number"
+          }
+        },
+        "required": ["type", "duration", "price"]
+      },
+      "SocialMediaDto": {
+        "type": "object",
+        "properties": {
+          "instagram": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateCoachDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "specialties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bio": {
+            "type": "string"
+          },
+          "certifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsOfExperience": {
+            "type": "number"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availabilityRules": {
+            "$ref": "#/components/schemas/AvailabilityRulesDto"
+          },
+          "hourlyRate": {
+            "type": "number"
+          },
+          "sessionTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionTypeDto"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "acceptingNewClients": {
+            "type": "boolean",
+            "default": true
+          },
+          "notes": {
+            "type": "string"
+          },
+          "socialMedia": {
+            "$ref": "#/components/schemas/SocialMediaDto"
+          },
+          "portfolioImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emailNotifications": {
+            "type": "boolean",
+            "default": true
+          },
+          "smsNotifications": {
+            "type": "boolean",
+            "default": true
+          },
+          "preferredLanguage": {
+            "type": "string"
+          }
+        },
+        "required": ["userId", "specialties"]
+      },
+      "UpdateCoachDto": {
+        "type": "object",
+        "properties": {
+          "specialties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bio": {
+            "type": "string"
+          },
+          "certifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsOfExperience": {
+            "type": "number"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availabilityRules": {
+            "$ref": "#/components/schemas/AvailabilityRulesDto"
+          },
+          "hourlyRate": {
+            "type": "number"
+          },
+          "sessionTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionTypeDto"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "acceptingNewClients": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "socialMedia": {
+            "$ref": "#/components/schemas/SocialMediaDto"
+          },
+          "portfolioImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emailNotifications": {
+            "type": "boolean"
+          },
+          "smsNotifications": {
+            "type": "boolean"
+          },
+          "preferredLanguage": {
+            "type": "string"
+          }
+        }
+      },
+      "AddressDto": {
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "EmergencyContactDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "relationship": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "relationship", "phone"]
+      },
+      "CreateClientDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fitnessLevel": {
+            "type": "string"
+          },
+          "medicalConditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dietaryRestrictions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredWorkoutTimes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredWorkoutTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assignedCoachId": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          },
+          "emergencyContact": {
+            "$ref": "#/components/schemas/EmergencyContactDto"
+          },
+          "emailNotifications": {
+            "type": "boolean",
+            "default": true
+          },
+          "smsNotifications": {
+            "type": "boolean",
+            "default": true
+          },
+          "preferredLanguage": {
+            "type": "string"
+          }
+        },
+        "required": ["userId"]
+      },
+      "UpdateClientDto": {
+        "type": "object",
+        "properties": {
+          "dateOfBirth": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fitnessLevel": {
+            "type": "string"
+          },
+          "medicalConditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dietaryRestrictions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredWorkoutTimes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredWorkoutTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assignedCoachId": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "emergencyContact": {
+            "$ref": "#/components/schemas/EmergencyContactDto"
+          },
+          "emailNotifications": {
+            "type": "boolean"
+          },
+          "smsNotifications": {
+            "type": "boolean"
+          },
+          "preferredLanguage": {
+            "type": "string"
+          }
+        }
+      },
+      "AssignCoachDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "coachId": {
+            "type": "string"
+          }
+        },
+        "required": ["clientId", "coachId"]
+      },
+      "CreateSessionDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "coachId": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "endsAt": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sessionType": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["clientId", "coachId", "startsAt", "endsAt"]
+      },
+      "CheckAvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "coachId": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "endsAt": {
+            "type": "string"
+          }
+        },
+        "required": ["coachId", "startsAt", "endsAt"]
+      },
+      "UpdateSessionDto": {
+        "type": "object",
+        "properties": {
+          "startsAt": {
+            "type": "string"
+          },
+          "endsAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "completed",
+              "canceled",
+              "no_show",
+              "in_progress"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "sessionType": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "paymentStatus": {
+            "type": "string"
+          },
+          "cancelReason": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CancelSessionDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": ["reason"]
+      },
+      "SessionFeedbackDto": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "number"
+          },
+          "comments": {
+            "type": "string"
+          }
+        },
+        "required": ["rating"]
+      }
+    }
+  }
+}
